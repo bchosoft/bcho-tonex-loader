@@ -443,9 +443,9 @@ function hideDonationOverlay() {
 function startDonationCountdown(sec) {
     let s = sec;
     const updateLabel = () => {
-        $('donationCountdown').textContent = state.lang === 'es'
-            ? `Podrás usar la app en ${s} s  ·  You can use the app in ${s} s`
-            : `You can use the app in ${s} s  ·  Podrás usar la app en ${s} s`;
+        $('donationCountdown').innerHTML = state.lang === 'es'
+            ? `Podrás usar la app en <span class="countdown-num">${s}</span> s  ·  You can use the app in <span class="countdown-num">${s}</span> s`
+            : `You can use the app in <span class="countdown-num">${s}</span> s  ·  Podrás usar la app en <span class="countdown-num">${s}</span> s`;
     };
     updateLabel();
     if (countdownTimer) clearInterval(countdownTimer);
@@ -454,7 +454,7 @@ function startDonationCountdown(sec) {
         if (s <= 0) {
             clearInterval(countdownTimer);
             countdownTimer = null;
-            $('donationCountdown').textContent = '';
+            $('donationCountdown').innerHTML = '';
             const ov = $('donationOverlay');
             if (ov) ov.classList.add('closable');
         } else {
@@ -1336,6 +1336,25 @@ function openModal(html) {
     $('modal').querySelectorAll('[data-close]').forEach((el) => { el.onclick = closeModal; });
 }
 function closeModal() { $('overlay').classList.add('hidden'); }
+function setupCopyButton(btnId, targetId) {
+    const btn = $(btnId);
+    if (!btn) return;
+    btn.onclick = () => {
+        const text = ($(targetId).textContent || '').trim();
+        if (!text || text === '—') return;
+        navigator.clipboard.writeText(text).then(() => {
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '✓';
+            btn.style.color = '#2bf57e';
+            setTimeout(() => {
+                btn.innerHTML = oldHtml;
+                btn.style.color = '';
+            }, 1500);
+        }).catch(err => {
+            console.error("Clipboard copy failed:", err);
+        });
+    };
+}
 
 /* ---- init ---- */
 function wireEvents() {
@@ -1350,6 +1369,8 @@ function wireEvents() {
     $('donationClose').onclick = hideDonationOverlay;
     $('donationManualToggle').onclick = () => $('donationManual').classList.toggle('open');
     $('donationApply').onclick = donationApplyManual;
+    setupCopyButton('btnCopyToken', 'donationToken');
+    setupCopyButton('btnCopyHwid', 'donationHwid');
     $('portSelect').onchange = (e) => { state.port = e.target.value; };
     $('langSwitch').querySelectorAll('.lang-btn').forEach((b) => {
         b.onclick = () => setLang(b.dataset.lang);

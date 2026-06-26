@@ -425,7 +425,7 @@ table#slots tbody tr.drop-row-target td:first-child { box-shadow: inset 3px 0 0 
 .donation-close {
     position: absolute; top: 14px; right: 16px;
     background: transparent; border: none; color: var(--muted);
-    font-size: 28px; line-height: 1; cursor: pointer; display: none;
+    font-size: 38px; line-height: 1; cursor: pointer; display: none;
 }
 .donation-close:hover { color: var(--red); }
 .donation-overlay.closable .donation-close { display: block; }
@@ -447,6 +447,14 @@ table#slots tbody tr.drop-row-target td:first-child { box-shadow: inset 3px 0 0 
 .donation-actions .btn { font-size: 15px; padding: 10px 20px; } /* Botones más grandes */
 .donation-status { min-height: 20px; margin-top: 14px; font-size: 15px; color: var(--muted); } /* Más grande (antes 13px) */
 .donation-countdown { margin-top: 16px; font-size: 15px; font-weight: 700; color: var(--muted); } /* Más grande (antes 13px) */
+.countdown-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ff9a3d; /* Striking amber color */
+    margin: 0 5px;
+    display: inline-block;
+    vertical-align: middle;
+}
 .donation-manual-toggle {
     margin-top: 18px; background: transparent; border: none; color: var(--muted);
     font-size: 13.5px; cursor: pointer; text-decoration: underline;
@@ -465,3 +473,31 @@ table#slots tbody tr.drop-row-target td:first-child { box-shadow: inset 3px 0 0 
     border-radius: 6px; color: var(--text); font-size: 14.5px; padding: 10px 12px; outline: none; /* Más grande */
 }
 .donation-code-input:focus { border-color: #ff9a3d; }
+
+.donation-token-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.btn-copy {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-copy:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: #ff9a3d;
+}
+.btn-copy:active {
+    transform: scale(0.95);
+}
