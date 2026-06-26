@@ -36,10 +36,11 @@ type App struct {
 	pollWanted        bool
 	uploadMeta        map[int]*upload.Metadata
 	hideBChoOnDisplay map[int]bool
-	usageLoaded       bool
-	usageMode         UsageMode
-	importsDone       int
-	exportsDone       int
+	unlocked           bool
+	monetizationLoaded bool
+	monetizationConfig MonetizationConfig
+	importsDone        int
+	exportsDone        int
 }
 
 // NewApp crea la estructura de la app.
@@ -186,7 +187,7 @@ func (a *App) InspectTXP(txpPath string) (*upload.Info, error) {
 // UploadAndAssign sube un .txp al slot indicado y opcionalmente lo asigna.
 // assignTo: "", "A", "B" o "STOMP".
 func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (*librarian.UploadResult, error) {
-	if err := a.checkOfflineImportAllowed(); err != nil {
+	if err := a.checkImportAllowed(); err != nil {
 		return nil, err
 	}
 	max := slotCountFor(port)
@@ -219,7 +220,7 @@ func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (
 		return e
 	})
 	if err == nil && res != nil && res.OK {
-		a.addOfflineImport()
+		a.addImport()
 	}
 	return res, err
 }
@@ -311,7 +312,7 @@ func (a *App) ExportTXPBCho(slot int, port string) (string, error) {
 }
 
 func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) {
-	if err := a.checkOfflineExportAllowed(); err != nil {
+	if err := a.checkExportAllowed(); err != nil {
 		return "", err
 	}
 	max := slotCountFor(port)
@@ -355,7 +356,7 @@ func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) 
 	if err := os.WriteFile(path, data, 0o644); err != nil {
 		return "", err
 	}
-	a.addOfflineExport()
+	a.addExport()
 	return path, nil
 }
 

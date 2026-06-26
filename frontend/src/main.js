@@ -343,6 +343,17 @@ const monetizationConfig = {
     exportsDone: 0,
 };
 
+let licenseInfo = {
+    unlocked: true,
+    token: '',
+    hwid: '',
+    donateUrl: '',
+    freeLimit: 3,
+    activeLimit: 0
+};
+let countdownTimer = null;
+const COUNTDOWN_SECONDS = 45;
+
 function monetizationPartEnabled(part) {
     return !!monetizationConfig.monetizationEnabled && monetizationConfig[part] !== false;
 }
@@ -356,18 +367,25 @@ function applyMonetizationUI() {
 async function loadMonetizationConfig() {
     try {
         const b = backend();
-        if (!b || typeof b.GetUsageMode !== 'function') throw new Error('usage mode unavailable');
-        const cfg = await b.GetUsageMode();
+        if (!b || typeof b.GetLicenseInfo !== 'function') throw new Error('license info unavailable');
+        licenseInfo = await b.GetLicenseInfo();
         Object.assign(monetizationConfig, {
-            monetizationEnabled: !!cfg.monetizationEnabled,
-            donateButton: cfg.donateButton !== false,
-            overlay: cfg.overlay !== false,
-            restrictions: cfg.restrictions !== false,
-            offlineMode: !!cfg.offlineMode,
-            activeLimit: cfg.activeLimit || 0,
-            importsDone: cfg.importsDone || 0,
-            exportsDone: cfg.exportsDone || 0,
+            monetizationEnabled: !!licenseInfo.monetizationEnabled,
+            donateButton: licenseInfo.donateButton !== false,
+            overlay: licenseInfo.overlay !== false,
+            restrictions: licenseInfo.restrictions !== false,
+            offlineMode: !!licenseInfo.offlineMode,
+            activeLimit: licenseInfo.activeLimit || 0,
+            importsDone: licenseInfo.importsDone || 0,
+            exportsDone: licenseInfo.exportsDone || 0,
         });
+
+        applyMonetizationUI();
+
+        if (monetizationPartEnabled('overlay') && !licenseInfo.unlocked) {
+            showDonationOverlay('startup');
+            b.CheckDonation().then((ok) => { if (ok) donationUnlockSuccess(); }).catch(() => {});
+        }
     } catch (e) {
         Object.assign(monetizationConfig, {
             monetizationEnabled: false,
@@ -379,8 +397,120 @@ async function loadMonetizationConfig() {
             importsDone: 0,
             exportsDone: 0,
         });
+        applyMonetizationUI();
     }
-    applyMonetizationUI();
+}
+
+function showDonationOverlay(mode) {
+    if (!monetizationPartEnabled('overlay')) return;
+    const ov = $('donationOverlay');
+    if (!ov) return;
+    $('donationToken').textContent = licenseInfo.token || '—';
+    $('donationHwid').textContent = licenseInfo.hwid || '—';
+    $('donationStatus').textContent = '';
+
+    ov.classList.remove('closable');
+    ov.classList.add('active');
+
+    $('donationCountdown').textContent = '';
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+
+    startDonationCountdown(COUNTDOWN_SECONDS);
+}
+
+function hideDonationOverlay() {
+    const ov = $('donationOverlay');
+    if (ov) ov.classList.remove('active');
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+}
+
+function startDonationCountdown(sec) {
+    let s = sec;
+    const updateLabel = () => {
+        $('donationCountdown').textContent = state.lang === 'es'
+            ? `Podrás usar la app en ${s} s  ·  You can use the app in ${s} s`
+            : `You can use the app in ${s} s  ·  Podrás usar la app en ${s} s`;
+    };
+    updateLabel();
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+        s--;
+        if (s <= 0) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            $('donationCountdown').textContent = '';
+            const ov = $('donationOverlay');
+            if (ov) ov.classList.add('closable');
+        } else {
+            updateLabel();
+        }
+    }, 1000);
+}
+
+function donationUnlockSuccess() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    const ov = $('donationOverlay');
+    if (ov) {
+        ov.classList.add('closable');
+        const st = $('donationStatus');
+        if (st) {
+            st.style.color = 'var(--pos-b)';
+            st.textContent = '¡Donación verificada! Gracias 💚 · Donation verified! Thanks 💚';
+        }
+        setTimeout(hideDonationOverlay, 1800);
+    }
+    loadMonetizationConfig();
+}
+
+async function donationCheck() {
+    const b = backend();
+    if (!b) return;
+    const st = $('donationStatus');
+    if (st) {
+        st.style.color = '';
+        st.textContent = state.lang === 'es' ? 'Verificando...' : 'Checking...';
+    }
+    try {
+        const ok = await b.CheckDonation();
+        if (ok) {
+            donationUnlockSuccess();
+        } else {
+            if (st) {
+                st.textContent = state.lang === 'es'
+                    ? 'Aún no consta tu donación. Espera unos segundos tras donar y reinténtalo. · Donation not found yet. Wait a few seconds after donating and retry.'
+                    : 'Donation not found yet. Wait a few seconds after donating and retry. · Aún no consta tu donación. Espera unos segundos tras donar y reinténtalo.';
+            }
+        }
+    } catch (e) {
+        if (st) st.textContent = String(e.message || e);
+    }
+}
+
+async function donationApplyManual() {
+    const b = backend();
+    if (!b) return;
+    const code = $('donationCodeInput').value.trim();
+    const st = $('donationStatus');
+    if (st) {
+        st.style.color = '';
+        st.textContent = '';
+    }
+    try {
+        const ok = await b.ApplyCode(code);
+        if (ok) {
+            donationUnlockSuccess();
+        } else {
+            if (st) {
+                st.style.color = 'var(--pos-c)';
+                st.textContent = state.lang === 'es' ? 'Código incorrecto · Invalid code' : 'Invalid code · Código incorrecto';
+            }
+        }
+    } catch (e) {
+        if (st) {
+            st.style.color = 'var(--pos-c)';
+            st.textContent = String(e.message || e);
+        }
+    }
 }
 
 function showOfflineWarning(show) {
@@ -951,6 +1081,7 @@ async function uploadPaths(paths, baseSlot) {
     const maxFit = slotCount() - baseSlot;
     let overflow = Math.max(0, paths.length - maxFit);
     let fit = paths.slice(0, maxFit);
+
     if (monetizationConfig.offlineMode) {
         const remaining = Math.max(0, (monetizationConfig.activeLimit || 1) - (monetizationConfig.importsDone || 0));
         if (remaining <= 0) {
@@ -962,7 +1093,18 @@ async function uploadPaths(paths, baseSlot) {
             overflow += fit.length - remaining;
             fit = fit.slice(0, remaining);
         }
+    } else if (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked) {
+        const remaining = Math.max(0, (monetizationConfig.activeLimit || 3) - (monetizationConfig.importsDone || 0));
+        if (remaining <= 0) {
+            showDonationOverlay('limit');
+            return;
+        }
+        if (fit.length > remaining) {
+            overflow += fit.length - remaining;
+            fit = fit.slice(0, remaining);
+        }
     }
+
     if (overflow > 0) toast(t('overflowWarn', { n: overflow }), '');
     if (!fit.length) return;
     busy(true);
@@ -976,7 +1118,9 @@ async function uploadPaths(paths, baseSlot) {
             const res = await b.UploadAndAssign(fit[i], slot, '', state.port);
             if (res && res.ok) {
                 ok++;
-                if (monetizationConfig.offlineMode) monetizationConfig.importsDone++;
+                if (monetizationConfig.offlineMode || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked)) {
+                    monetizationConfig.importsDone++;
+                }
                 done.push(slot);
                 // Si el backend ya devolvió el preset releído, pintamos esa fila ya.
                 if (res.preset) fillRow(res.preset);
@@ -984,9 +1128,14 @@ async function uploadPaths(paths, baseSlot) {
                 toast(t('noAck', { file }), '');
             }
         } catch (e) {
-            if (isOfflineLimitError(e)) {
+            const errorMsg = e.message || e;
+            if (String(errorMsg).includes('OFFLINE_LIMIT')) {
                 showOfflineWarning(true);
                 toast(t('offlineImportLimit'), 'err');
+                break;
+            }
+            if (String(errorMsg).includes('DONATION_LIMIT')) {
+                showDonationOverlay('limit');
                 break;
             }
             toast(t('uploadFileErr', { file, e }), 'err');
@@ -1002,10 +1151,17 @@ async function uploadPaths(paths, baseSlot) {
 async function exportTXP(idx, bcho = false) {
     const b = backend();
     if (!b) return;
-    if (monetizationConfig.offlineMode && (monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 1)) {
-        showOfflineWarning(true);
-        toast(t('offlineExportLimit'), 'err');
-        return;
+    if (monetizationConfig.offlineMode) {
+        if ((monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 1)) {
+            showOfflineWarning(true);
+            toast(t('offlineExportLimit'), 'err');
+            return;
+        }
+    } else if (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked) {
+        if ((monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 3)) {
+            showDonationOverlay('limit');
+            return;
+        }
     }
     busy(true);
     setStatus(t('exporting', { n: slotNum(idx) }), 'busy');
@@ -1014,16 +1170,23 @@ async function exportTXP(idx, bcho = false) {
             ? await b.ExportTXPBCho(idx, state.port)
             : await b.ExportTXP(idx, state.port);
         if (path) {
-            if (monetizationConfig.offlineMode) monetizationConfig.exportsDone++;
+            if (monetizationConfig.offlineMode || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked)) {
+                monetizationConfig.exportsDone++;
+            }
             setStatus(t('exportSaved', { path }), 'ok');
             toast(t('exportSaved', { path }), 'ok');
         } else {
             setStatus(t('statusReady'), '');
         }
     } catch (e) {
-        if (isOfflineLimitError(e)) {
+        const errorMsg = e.message || e;
+        if (String(errorMsg).includes('OFFLINE_LIMIT')) {
             showOfflineWarning(true);
             toast(t('offlineExportLimit'), 'err');
+            return;
+        }
+        if (String(errorMsg).includes('DONATION_LIMIT')) {
+            showDonationOverlay('limit');
             return;
         }
         setStatus(t('genericErr', { e }), 'err');
@@ -1163,6 +1326,11 @@ function wireEvents() {
     $('btnPoll').onclick = () => togglePolling();
     $('btnHelp').onclick = showHelp;
     $('btnDonate').onclick = openDonate;
+    $('donationDonate').onclick = openDonate;
+    $('donationCheck').onclick = donationCheck;
+    $('donationClose').onclick = hideDonationOverlay;
+    $('donationManualToggle').onclick = () => $('donationManual').classList.toggle('open');
+    $('donationApply').onclick = donationApplyManual;
     $('portSelect').onchange = (e) => { state.port = e.target.value; };
     $('langSwitch').querySelectorAll('.lang-btn').forEach((b) => {
         b.onclick = () => setLang(b.dataset.lang);

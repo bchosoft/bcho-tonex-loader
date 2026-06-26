@@ -3,6 +3,7 @@ module go-tonex-loader
 go 1.25.0
 
 require (
+	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/google/uuid v1.6.0
 	github.com/wailsapp/wails/v2 v2.11.0
 	go.bug.st/serial v1.7.1

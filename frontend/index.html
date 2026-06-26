@@ -65,6 +65,38 @@
 </div>
 <div id="toast" class="toast hidden"></div>
 
+<!-- Donation Overlay -->
+<div id="donationOverlay" class="donation-overlay">
+    <div class="donation-card">
+        <button id="donationClose" class="donation-close" title="Cerrar / Close">×</button>
+        <div class="donation-coffee">☕</div>
+        <h2>Apoya el proyecto · Support the project</h2>
+        <div class="donation-text">
+            <p>🇪🇸 Las herramientas usadas para desarrollar esta app <b>no son gratuitas</b>. Si te resulta útil, considera una donación. Sin donación, cada sesión permite <b>3 importaciones</b> y <b>3 exportaciones</b>. Al donar desaparecen esta pantalla y <b>todos los límites</b>, para siempre, en este equipo.</p>
+            <p>🇬🇧 The tools used to build this app <b>aren't free</b>. If you find it useful, please consider donating. Without a donation, each session allows <b>3 imports</b> and <b>3 exports</b>. Donating removes this screen and <b>all limits</b>, forever, on this computer.</p>
+        </div>
+        <div class="donation-token-box">
+            <span class="donation-token-label">Pega este código en el mensaje de tu donación · Paste this code in your donation message:</span>
+            <code id="donationToken">—</code>
+        </div>
+        <div class="donation-actions">
+            <button id="donationDonate" class="btn donate">☕ Donar / Donate</button>
+            <button id="donationCheck" class="btn">Ya he donado / I've donated</button>
+        </div>
+        <p id="donationStatus" class="donation-status"></p>
+        <div id="donationCountdown" class="donation-countdown"></div>
+        <button id="donationManualToggle" class="donation-manual-toggle">¿Tienes un código? · Have a code?</button>
+        <div id="donationManual" class="donation-manual">
+            <span class="donation-token-label">ID de soporte (envíalo si necesitas un código) · Support ID (send it if you need a code):</span>
+            <code id="donationHwid" class="donation-hwid">—</code>
+            <div class="donation-manual-row">
+                <input id="donationCodeInput" class="donation-code-input" type="text" placeholder="Pega aquí tu código · Paste your code here" />
+                <button id="donationApply" class="btn">Aplicar · Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="./src/main.js" type="module"></script>
 </body>
 </html>
