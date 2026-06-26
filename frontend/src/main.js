@@ -15,6 +15,8 @@ const I18N = {
         btnOpen: '📂 Abrir .txp',
         btnBackup: '💾 Backup',
         btnHelp: '❔ Ayuda',
+        btnDonate: '☕ Donar',
+        donateTitle: 'Invítame a un café y apoya el proyecto',
         portTitle: 'Puerto COM del pedal',
         pollTitle: 'Seguir el footswitch en vivo',
         thSlot: 'Slot', thName: 'Nombre', thCharacter: 'Carácter', thTone: 'Modelo',
@@ -23,6 +25,7 @@ const I18N = {
         statusReady: 'Listo. Conecta un pedal Tonex.',
         noPedal: 'No se detecta ningún pedal Tonex por USB.',
         pedalDetected: 'Pedal detectado en {port}.',
+        pickPortHint: 'No se detectó por USB. Elige el puerto COM del pedal y pulsa Refrescar.',
         errPorts: 'Error listando puertos: {e}',
         reading: 'Leyendo el pedal…',
         readDone: 'Leídos {n} slots desde {port}.',
@@ -42,6 +45,8 @@ const I18N = {
         slotWord: 'Slot',
         loading: 'Cargando slot {n} en {pos}…',
         loaded: 'Slot {n} cargado en {pos}.',
+        selected: 'Preset {n} activo en el pedal: {name}',
+        selectErr: 'No se pudo cambiar el preset: {e}',
         assignErr: 'No se pudo asignar: {e}',
         colorTitle: 'Color del slot {n}',
         colorSub: 'Elige el color del LED para este preset.',
@@ -84,6 +89,8 @@ const I18N = {
         btnOpen: '📂 Open .txp',
         btnBackup: '💾 Backup',
         btnHelp: '❔ Help',
+        btnDonate: '☕ Donate',
+        donateTitle: 'Buy me a coffee and support the project',
         portTitle: 'Pedal COM port',
         pollTitle: 'Follow the footswitch live',
         thSlot: 'Slot', thName: 'Name', thCharacter: 'Character', thTone: 'Tone Model',
@@ -92,6 +99,7 @@ const I18N = {
         statusReady: 'Ready. Connect a Tonex pedal.',
         noPedal: 'No Tonex pedal detected over USB.',
         pedalDetected: 'Pedal detected on {port}.',
+        pickPortHint: 'Not detected over USB. Pick the pedal’s COM port and click Refresh.',
         errPorts: 'Error listing ports: {e}',
         reading: 'Reading the pedal…',
         readDone: 'Read {n} slots from {port}.',
@@ -111,6 +119,8 @@ const I18N = {
         slotWord: 'Slot',
         loading: 'Loading slot {n} into {pos}…',
         loaded: 'Slot {n} loaded into {pos}.',
+        selected: 'Preset {n} active on the pedal: {name}',
+        selectErr: 'Couldn’t change the preset: {e}',
         assignErr: 'Couldn’t assign: {e}',
         colorTitle: 'Colour for slot {n}',
         colorSub: 'Pick the LED colour for this preset.',
@@ -308,11 +318,24 @@ const state = {
     busy: false,
     droppedPaths: [],
     dragRowIndex: null,
+    pedalActiveIndex: null, // preset activo seleccionado en el Pedal
+    selecting: false,
 };
 
 const $ = (id) => document.getElementById(id);
 const backend = () => (window.go && window.go.main && window.go.main.App) || null;
 const rt = () => window.runtime || null;
+
+/* Modelo del pedal actual ("one" | "pedal" | "unknown") y nº de slots. El Tonex
+ * Pedal grande no tiene asignación libre A/B/Stomp (usa bancos), así que esas
+ * tarjetas y opciones se ocultan en modo "pedal". */
+function currentModel() { return (state.snapshot && state.snapshot.model) || 'one'; }
+function isPedal() { return currentModel() === 'pedal'; }
+function slotCount() { return (state.snapshot && state.snapshot.count) || 20; }
+// Número de slot mostrado al usuario. El Tonex Pedal tiene pantalla y numera sus
+// presets 0-149, así que mostramos el índice tal cual para que coincida. El Tonex
+// One no tiene pantalla → numeración clásica 1-N.
+function slotNum(idx) { return isPedal() ? idx : idx + 1; }
 
 /* ---- util ---- */
 function setStatus(msg, kind = '') {
@@ -349,6 +372,14 @@ function colorOf(idx) {
 function activeProto() {
     if (!state.snapshot) return '';
     return { 0: 'A', 1: 'B', 2: 'C' }[state.snapshot.activeSlot] || '';
+}
+// Indice del preset actualmente activo en el pedal. En el Pedal grande es el que
+// el usuario ha seleccionado en la app (registro 81 01); en el One es el asignado
+// a la posicion A/B/C activa.
+function activePresetIndex() {
+    if (isPedal()) return state.pedalActiveIndex == null ? -1 : state.pedalActiveIndex;
+    const ap = activeProto();
+    return ap ? assignmentFor(ap) : -1;
 }
 function assignmentFor(proto) {
     const a = state.snapshot && state.snapshot.assignments;
@@ -422,8 +453,27 @@ function setLang(l) {
     applyLang();
 }
 
+/* ---- UI según modelo ---- */
+// En modo Pedal: ocultar la sección de tarjetas A/B/Stomp (no aplica) y reflejar
+// el modelo en el subtítulo. En modo One: comportamiento clásico.
+function applyModelUI() {
+    const pedal = isPedal();
+    document.body.classList.toggle('mode-pedal', pedal);
+    const cards = $('cards');
+    if (cards) cards.classList.toggle('hidden', pedal);
+    const chip = document.querySelector('.mode-chip');
+    if (chip) chip.classList.toggle('hidden', pedal);
+    const sub = $('subtitle');
+    if (sub) {
+        const name = (state.snapshot && state.snapshot.modelName)
+            || (pedal ? 'Tonex Pedal' : 'Tonex One');
+        sub.textContent = `IK Multimedia ${name} · USB`;
+    }
+}
+
 /* ---- cards ---- */
 function renderCards() {
+    if (isPedal()) { applyModelUI(); return; } // el Pedal no usa tarjetas A/B/Stomp
     const wrap = $('cards');
     const ap = activeProto();
     const parts = [];
@@ -463,8 +513,7 @@ function renderTable() {
         body.innerHTML = `<tr class="empty-row"><td colspan="8">${t('emptyRow')}</td></tr>`;
         return;
     }
-    const ap = activeProto();
-    const activePresetIdx = ap ? assignmentFor(ap) : -1;
+    const activePresetIdx = activePresetIndex();
     const rows = state.snapshot.presets.map((p) => {
         const led = rgbCss(colorOf(p.index));
         const pills = pillsHtml(p.assigned);
@@ -473,7 +522,7 @@ function renderTable() {
         if (p.index === activePresetIdx) cls.push('active-preset');
         if (p.loading) cls.push('row-loading');
         return `<tr data-index="${p.index}" draggable="true" class="${cls.join(' ')}">
-        <td><span class="slot-num"><span class="slot-led" title="${t('ctxColor')}" style="background:${led}"></span>${p.index + 1}</span></td>
+        <td><span class="slot-num"><span class="slot-led" title="${t('ctxColor')}" style="background:${led}"></span>${slotNum(p.index)}</span></td>
         <td>${esc(displayName(p))}</td>
         <td>${esc(p.character)}</td>
         <td>${esc(displayToneModel(p))}</td>
@@ -487,8 +536,7 @@ function renderTable() {
 }
 
 function updateActiveHighlight() {
-    const ap = activeProto();
-    const activePresetIdx = ap ? assignmentFor(ap) : -1;
+    const activePresetIdx = activePresetIndex();
     document.querySelectorAll('#slotBody tr').forEach((tr) => {
         const idx = parseInt(tr.dataset.index, 10);
         tr.classList.toggle('active-preset', idx === activePresetIdx);
@@ -511,9 +559,10 @@ function onSnapState(st) {
         assigned: assignedLabelJS(st.assignments, i), loading: true,
     }));
     state.snapshot = {
-        port: st.port, count: st.count, assignments: st.assignments,
-        activeSlot: st.activeSlot, colors: st.colors, presets,
+        port: st.port, model: st.model, modelName: st.modelName, count: st.count,
+        assignments: st.assignments, activeSlot: st.activeSlot, colors: st.colors, presets,
     };
+    applyModelUI();
     renderCards();
     renderTable();
 }
@@ -542,9 +591,16 @@ async function loadPorts() {
     const b = backend();
     if (!b) return;
     try {
-        const ports = await b.ListPorts();
+        let ports = await b.ListPorts();
         const sel = $('portSelect');
         sel.innerHTML = '';
+        const detected = ports && ports.length;
+        if (!detected) {
+            // Red de seguridad: la enumeración USB no expuso el pedal. Ofrecemos
+            // TODOS los puertos COM para elegir a mano; al conectar se detecta el
+            // modelo por sondeo de HELLO.
+            try { ports = await b.ListAllPorts(); } catch (_) { ports = []; }
+        }
         if (!ports || !ports.length) {
             sel.innerHTML = '<option value="">—</option>';
             state.port = '';
@@ -554,12 +610,16 @@ async function loadPorts() {
         ports.forEach((p) => {
             const opt = document.createElement('option');
             opt.value = p.name;
-            opt.textContent = `${p.name} · ${p.isTonexOne ? 'Tonex One' : 'Tonex'}`;
+            const label = p.modelName && p.model !== 'unknown'
+                ? p.modelName
+                : (p.isTonexOne ? 'Tonex One' : (p.modelName || 'COM'));
+            opt.textContent = `${p.name} · ${label}`;
             sel.appendChild(opt);
         });
         state.port = ports[0].name;
+        state.autoDetected = !!detected;
         sel.value = state.port;
-        setStatus(t('pedalDetected', { port: state.port }), 'ok');
+        setStatus(detected ? t('pedalDetected', { port: state.port }) : t('pickPortHint'), detected ? 'ok' : '');
     } catch (e) {
         setStatus(t('errPorts', { e }), 'err');
     }
@@ -576,6 +636,7 @@ async function refresh() {
     try {
         const snap = await b.Snapshot(state.port);
         state.snapshot = snap;
+        applyModelUI();
         renderCards();
         renderTable();
         setStatus(t('readDone', { n: snap.presets.length, port: snap.port }), 'ok');
@@ -587,6 +648,35 @@ async function refresh() {
     }
 }
 
+// Recarga SOLO un slot tras una subida (no relee todo el pedal). Clave de
+// velocidad, sobre todo en el Pedal (150 slots).
+async function refreshSlot(idx) {
+    const b = backend();
+    if (!b) return;
+    try {
+        const s = await b.RefreshSlot(idx, state.port);
+        if (s) fillRow(s);
+    } catch (e) { /* la fila se queda con lo que hubiera; no es fatal */ }
+}
+
+// Relee solo el estado ligero (asignaciones/activo/colores) tras color/asignación,
+// sin volver a leer el contenido de los 20/150 presets.
+async function refreshState() {
+    const b = backend();
+    if (!b || !state.snapshot) return;
+    try {
+        const st = await b.QuickState(state.port);
+        if (!st) return;
+        state.snapshot.assignments = st.assignments;
+        state.snapshot.activeSlot = st.activeSlot;
+        if (st.colors && st.colors.length) state.snapshot.colors = st.colors;
+        // Recalcular pills "asignado" de todas las filas (cambió una asignación).
+        state.snapshot.presets.forEach((p) => { p.assigned = assignedLabelJS(st.assignments, p.index); });
+        renderCards();
+        renderTable();
+    } catch (e) { /* no fatal */ }
+}
+
 /* ---- selección ---- */
 function selectRow(idx) {
     state.selectedIndex = idx;
@@ -595,23 +685,49 @@ function selectRow(idx) {
     });
 }
 
+// Cambia el preset activo del Pedal al hacer clic en una fila (registro 81 01).
+// Resalta la fila como activa al instante (optimista) y envia el comando.
+async function selectOnPedal(idx) {
+    const b = backend();
+    if (!b || state.selecting) return;
+    state.selecting = true;
+    state.pedalActiveIndex = idx;
+    updateActiveHighlight();
+    try {
+        await b.SelectPreset(idx, state.port);
+        const p = presetByIndex(idx);
+        setStatus(t('selected', { n: slotNum(idx), name: (p && displayName(p)) || '' }), 'ok');
+    } catch (e) {
+        toast(t('selectErr', { e }), 'err');
+    } finally {
+        state.selecting = false;
+    }
+}
+
 /* ---- context menu ---- */
 function showContextMenu(x, y, idx) {
     selectRow(idx);
     const preset = presetByIndex(idx);
     const menu = $('ctxMenu');
-    menu.innerHTML = `
-    <div class="ctx-sub">${t('slotWord')} ${idx + 1} · ${esc(preset ? displayName(preset) : '')}</div>
+    // Ambos: detalles + subir + exportar. La asignación A/B/Stomp y el color de LED
+    // son específicos del Tonex One (en el Pedal se ocultan: usa bancos, no asignación
+    // libre, y su estado no expone el bloque de colores del One).
+    let items = `
+    <div class="ctx-sub">${t('slotWord')} ${slotNum(idx)} · ${esc(preset ? displayName(preset) : '')}</div>
     <div class="ctx-item" data-act="details">${t('ctxDetails')}</div>
     <div class="ctx-item" data-act="upload">${t('ctxUpload')}</div>
     <div class="ctx-item" data-act="export">${t('ctxExport')}</div>
-    <div class="ctx-item" data-act="export-bcho">${t('ctxExportBcho')}</div>
+    <div class="ctx-item" data-act="export-bcho">${t('ctxExportBcho')}</div>`;
+    if (!isPedal()) {
+        items += `
     <div class="ctx-sep"></div>
     <div class="ctx-item" data-act="load-A">${t('ctxLoadA')}</div>
     <div class="ctx-item" data-act="load-B">${t('ctxLoadB')}</div>
     <div class="ctx-item" data-act="load-STOMP">${t('ctxLoadStomp')}</div>
     <div class="ctx-sep"></div>
     <div class="ctx-item" data-act="color">${t('ctxColor')}</div>`;
+    }
+    menu.innerHTML = items;
     menu.classList.remove('hidden');
     const mw = menu.offsetWidth, mh = menu.offsetHeight;
     menu.style.left = Math.min(x, window.innerWidth - mw - 8) + 'px';
@@ -645,8 +761,8 @@ function showDetails(idx) {
     if (!p) return;
     const col = colorOf(idx);
     openModal(`
-    <h2>${esc(displayName(p)) || t('slotWord') + ' ' + (idx + 1)}</h2>
-    <div class="modal-sub">${t('slotWord')} ${idx + 1} · ${esc(p.character)}</div>
+    <h2>${esc(displayName(p)) || t('slotWord') + ' ' + slotNum(idx)}</h2>
+    <div class="modal-sub">${t('slotWord')} ${slotNum(idx)} · ${esc(p.character)}</div>
     <div class="modal-row"><span class="k">${t('thTone')}</span><span class="v">${esc(displayToneModel(p)) || '—'}</span></div>
     <div class="modal-row"><span class="k">${t('ampLabel')}</span><span class="v">${esc(p.amp) || '—'}</span></div>
     <div class="modal-row"><span class="k">${t('cabLabel')}</span><span class="v">${esc(p.cab) || '—'}</span></div>
@@ -671,10 +787,12 @@ async function loadInto(slotName, idx) {
     try {
         await b.SetAssignment(slotName, idx, state.port);
         toast(t('loaded', { n: idx + 1, pos: posLabel(slotName) }), 'ok');
-        await refresh();
+        await refreshState();
+        setStatus(t('loaded', { n: idx + 1, pos: posLabel(slotName) }), 'ok');
     } catch (e) {
         setStatus(t('genericErr', { e }), 'err');
         toast(t('assignErr', { e }), 'err');
+    } finally {
         busy(false);
     }
 }
@@ -705,14 +823,28 @@ function colorFlow(idx) {
             try {
                 await b.SetColor(idx, r, g, bb, state.port);
                 toast(t('colorDone', { n: idx + 1 }), 'ok');
-                await refresh();
+                await refreshState();
+                setStatus(t('colorDone', { n: idx + 1 }), 'ok');
             } catch (e) {
                 setStatus(t('genericErr', { e }), 'err');
                 toast(t('colorErr', { e }), 'err');
+            } finally {
                 busy(false);
             }
         };
     });
+}
+
+/* ---- donación ---- */
+const DONATE_URL = 'https://buymeacoffee.com/blackchorima';
+function openDonate() {
+    const r = rt();
+    // Abrir en el navegador del sistema (no dentro del WebView).
+    if (r && typeof r.BrowserOpenURL === 'function') {
+        r.BrowserOpenURL(DONATE_URL);
+    } else {
+        window.open(DONATE_URL, '_blank');
+    }
 }
 
 /* ---- ayuda ---- */
@@ -738,36 +870,45 @@ async function uploadFlow(slot) {
 
 async function uploadPaths(paths, baseSlot) {
     const b = backend();
-    // Solo caben (20 - baseSlot) presets desde el slot apuntado hacia abajo.
-    const maxFit = 20 - baseSlot;
+    // Solo caben (slotCount - baseSlot) presets desde el slot apuntado hacia abajo.
+    const maxFit = slotCount() - baseSlot;
     const overflow = Math.max(0, paths.length - maxFit);
     const fit = paths.slice(0, maxFit);
     if (overflow > 0) toast(t('overflowWarn', { n: overflow }), '');
     if (!fit.length) return;
     busy(true);
     let ok = 0;
+    const done = [];
     for (let i = 0; i < fit.length; i++) {
         const slot = baseSlot + i;
         const file = fit[i].split(/[\\/]/).pop();
-        setStatus(t('uploading', { file, n: slot + 1, i: i + 1, total: fit.length }), 'busy');
+        setStatus(t('uploading', { file, n: slotNum(slot), i: i + 1, total: fit.length }), 'busy');
         try {
             const res = await b.UploadAndAssign(fit[i], slot, '', state.port);
-            if (res && res.ok) ok++;
-            else toast(t('noAck', { file }), '');
+            if (res && res.ok) {
+                ok++;
+                done.push(slot);
+                // Si el backend ya devolvió el preset releído, pintamos esa fila ya.
+                if (res.preset) fillRow(res.preset);
+            } else {
+                toast(t('noAck', { file }), '');
+            }
         } catch (e) {
             toast(t('uploadFileErr', { file, e }), 'err');
         }
     }
     setStatus(t('uploadDone', { ok, total: fit.length }), ok ? 'ok' : 'err');
     toast(t('uploadDone', { ok, total: fit.length }), ok ? 'ok' : 'err');
-    await refresh();
+    busy(false);
+    // Releer SOLO los slots subidos (no toda la snapshot).
+    for (const slot of done) await refreshSlot(slot);
 }
 
 async function exportTXP(idx, bcho = false) {
     const b = backend();
     if (!b) return;
     busy(true);
-    setStatus(t('exporting', { n: idx + 1 }), 'busy');
+    setStatus(t('exporting', { n: slotNum(idx) }), 'busy');
     try {
         const path = bcho
             ? await b.ExportTXPBCho(idx, state.port)
@@ -801,7 +942,7 @@ function showDropCues(x, y, count) {
     const base = targetSlotFromPoint(x, y);
     if (base == null) { $('dropHint').classList.remove('hidden'); return; }
     $('dropHint').classList.add('hidden');
-    const last = Math.min(base + count - 1, 19);
+    const last = Math.min(base + count - 1, slotCount() - 1);
     for (let idx = base; idx <= last; idx++) {
         const row = document.querySelector(`#slotBody tr[data-index="${idx}"]`);
         if (row) row.classList.add('drop-row-target');
@@ -861,6 +1002,19 @@ function setPollingUI(on) {
 }
 function onFootswitch(st) {
     if (!state.snapshot) return;
+    // Tonex Pedal: el poller reporta el preset activo (registro 81 01). Si cambió
+    // (p.ej. el usuario pisó el footswitch del pedal), resaltamos esa fila y la
+    // traemos a la vista. El Pedal no usa assignments/activeSlot/colores del One.
+    if (isPedal()) {
+        if (st && typeof st.activePreset === 'number' && st.activePreset >= 0
+            && st.activePreset !== state.pedalActiveIndex) {
+            state.pedalActiveIndex = st.activePreset;
+            updateActiveHighlight();
+            const tr = document.querySelector(`#slotBody tr[data-index="${st.activePreset}"]`);
+            if (tr) tr.scrollIntoView({ block: 'nearest' });
+        }
+        return;
+    }
     const a = state.snapshot.assignments || {};
     const na = st.assignments || {};
     const changed = st.activeSlot !== state.snapshot.activeSlot
@@ -902,6 +1056,7 @@ function wireEvents() {
     $('btnBackup').onclick = backup;
     $('btnPoll').onclick = () => togglePolling();
     $('btnHelp').onclick = showHelp;
+    $('btnDonate').onclick = openDonate;
     $('portSelect').onchange = (e) => { state.port = e.target.value; };
     $('langSwitch').querySelectorAll('.lang-btn').forEach((b) => {
         b.onclick = () => setLang(b.dataset.lang);
@@ -911,13 +1066,14 @@ function wireEvents() {
         const tr = e.target.closest('tr[data-index]');
         if (!tr) return;
         const idx = parseInt(tr.dataset.index, 10);
-        if (e.target.closest('.slot-led')) {   // click en el LED → paleta de color
+        if (e.target.closest('.slot-led') && !isPedal()) {   // click en el LED → paleta de color (no en Pedal)
             e.stopPropagation();
             selectRow(idx);
             colorFlow(idx);
             return;
         }
         selectRow(idx);
+        if (isPedal()) selectOnPedal(idx); // Pedal: clic = cambiar preset activo
     });
     $('slotBody').addEventListener('dblclick', (e) => {
         const tr = e.target.closest('tr[data-index]');
@@ -1000,8 +1156,8 @@ async function uploadFlowChooseSlot() {
 }
 
 function pickSlotModal(paths) {
-    const cells = (state.snapshot ? state.snapshot.presets : Array.from({ length: 20 }, (_, i) => ({ index: i, name: '' })))
-        .map((p) => `<div class="slot-pick" data-slot="${p.index}">${p.index + 1}<span class="sp-name">${esc(displayName(p) || '')}</span></div>`).join('');
+    const cells = (state.snapshot ? state.snapshot.presets : Array.from({ length: slotCount() }, (_, i) => ({ index: i, name: '' })))
+        .map((p) => `<div class="slot-pick" data-slot="${p.index}">${slotNum(p.index)}<span class="sp-name">${esc(displayName(p) || '')}</span></div>`).join('');
     const n = paths.length;
     openModal(`
     <h2>${n > 1 ? t('pickTitleMulti', { n }) : t('pickTitleOne')}</h2>
@@ -1042,12 +1198,12 @@ async function init() {
     subscribeBackend();
     applyLang();
     await loadPorts();
-    if (state.port) {
+    if (state.port && state.autoDetected) {
         // Paridad con la versión Python: al arrancar, lee el pedal y empieza el
-        // polling del footswitch automáticamente.
+        // polling del footswitch automáticamente (solo si se detectó un Tonex).
         await refresh();
         await togglePolling(true);
-    } else {
+    } else if (!state.port) {
         setStatus(t('statusReady'), '');
     }
 }

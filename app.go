@@ -83,19 +83,47 @@ func (a *App) ListPorts() ([]device.PortInfo, error) {
 	return device.FindTonexPorts()
 }
 
+// ListAllPorts devuelve TODOS los puertos COM del sistema marcando los que se
+// reconocen como Tonex por PID. Red de seguridad para cuando la enumeracion USB
+// no expone el VID/PID del pedal: el usuario puede elegir cualquier COM y al
+// conectar se detecta el modelo por sondeo de HELLO.
+func (a *App) ListAllPorts() ([]device.PortInfo, error) {
+	names, err := device.ListAllPortNames()
+	if err != nil {
+		return nil, err
+	}
+	tonex, _ := device.FindTonexPorts()
+	known := make(map[string]device.PortInfo, len(tonex))
+	for _, p := range tonex {
+		known[strings.ToUpper(p.Name)] = p
+	}
+	out := make([]device.PortInfo, 0, len(names))
+	for _, n := range names {
+		if p, ok := known[strings.ToUpper(n)]; ok {
+			out = append(out, p)
+		} else {
+			out = append(out, device.PortInfo{Name: n, Model: "unknown", ModelName: "COM"})
+		}
+	}
+	return out, nil
+}
+
 // ---- Lectura --------------------------------------------------------------
 
-// slotCount es el número de slots del pedal (Tonex One = 20; el Tonex Pedal
-// grande tiene 100 — se ajustará al añadir su soporte).
-const slotCount = 20
+// slotCountFor devuelve el numero de slots segun el modelo detectado en el puerto
+// (Tonex One = 20, Tonex Pedal = 150). Si no se detecta, asume One.
+func slotCountFor(port string) int {
+	return device.DetectModel(port).SlotCount()
+}
 
 // Snapshot lee el estado completo del pedal y los presets. Emite eventos de carga
 // progresiva ("snap-state" con el estado base y "snap-slot" por cada preset) para
-// que la tabla aparezca al instante y se rellene fila a fila (clave con 100 slots).
+// que la tabla aparezca al instante y se rellene fila a fila (clave con 150 slots).
 func (a *App) Snapshot(port string) (*librarian.Snapshot, error) {
 	var snap *librarian.Snapshot
+	count := slotCountFor(port)
 	err := a.withPedal(func() error {
-		s, e := librarian.ReadSnapshot(port, slotCount, true, a.progress,
+		s, e := librarian.ReadSnapshot(port, count, true, a.progress,
 			func(st *librarian.Snapshot) { wruntime.EventsEmit(a.ctx, "snap-state", st) },
 			func(sum preset.Summary) { wruntime.EventsEmit(a.ctx, "snap-slot", a.applyDisplayPolicy(sum)) },
 		)
@@ -106,6 +134,27 @@ func (a *App) Snapshot(port string) (*librarian.Snapshot, error) {
 		return e
 	})
 	return snap, err
+}
+
+// RefreshSlot relee un unico slot del pedal y devuelve su resumen actualizado.
+// Permite a la GUI actualizar solo la fila cambiada (subida/color/asignacion) en
+// vez de releer toda la snapshot — clave de velocidad, sobre todo en el Pedal (150).
+func (a *App) RefreshSlot(slot int, port string) (*preset.Summary, error) {
+	max := slotCountFor(port)
+	if slot < 0 || slot >= max {
+		return nil, fmt.Errorf("slot fuera de rango (0-%d)", max-1)
+	}
+	var out *preset.Summary
+	err := a.withPedal(func() error {
+		s, e := librarian.ReadPreset(slot, port, true)
+		if e != nil {
+			return e
+		}
+		applied := a.applyDisplayPolicy(*s)
+		out = &applied
+		return nil
+	})
+	return out, err
 }
 
 // QuickState lee solo el estado ligero (rapido).
@@ -133,8 +182,9 @@ func (a *App) InspectTXP(txpPath string) (*upload.Info, error) {
 // UploadAndAssign sube un .txp al slot indicado y opcionalmente lo asigna.
 // assignTo: "", "A", "B" o "STOMP".
 func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (*librarian.UploadResult, error) {
-	if slot < 0 || slot > 19 {
-		return nil, fmt.Errorf("slot fuera de rango (0-19)")
+	max := slotCountFor(port)
+	if slot < 0 || slot >= max {
+		return nil, fmt.Errorf("slot fuera de rango (0-%d)", max-1)
 	}
 	var res *librarian.UploadResult
 	meta, _ := upload.MetadataFromTXPFile(txpPath)
@@ -251,8 +301,9 @@ func (a *App) ExportTXPBCho(slot int, port string) (string, error) {
 }
 
 func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) {
-	if slot < 0 || slot > 19 {
-		return "", fmt.Errorf("slot fuera de rango (0-19)")
+	max := slotCountFor(port)
+	if slot < 0 || slot >= max {
+		return "", fmt.Errorf("slot fuera de rango (0-%d)", max-1)
 	}
 	var data []byte
 	name := fmt.Sprintf("slot-%02d", slot+1)
@@ -299,6 +350,13 @@ func (a *App) SetAssignment(slotName string, presetIndex int, port string) error
 	return a.withPedal(func() error {
 		_, e := librarian.SetSlotAssignment(slotName, presetIndex, port, true)
 		return e
+	})
+}
+
+// SelectPreset cambia el preset activo del pedal al slot indicado (Tonex Pedal).
+func (a *App) SelectPreset(slot int, port string) error {
+	return a.withPedal(func() error {
+		return librarian.SelectPreset(slot, port)
 	})
 }
 

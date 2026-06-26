@@ -4,11 +4,18 @@ package assets
 
 import _ "embed"
 
-// Template es la subida on-wire completa de UK100 (out_3), usada como plantilla
-// de sustitucion para generar cualquier subida.
+// Template es la subida on-wire completa de UK100 (out_3) del Tonex One, usada
+// como plantilla de sustitucion para generar cualquier subida al One.
 //
 //go:embed frames/out_3_30367B.bin
 var Template []byte
+
+// TemplatePedal es la subida on-wire completa capturada del Tonex Pedal (preset
+// "G DRIVE", 30368 B). Mismo formato que la del One pero desplazada +1 byte (el
+// campo de slot es mas ancho). Plantilla de sustitucion para subir al Pedal.
+//
+//go:embed frames/pedal_upload_30368B.bin
+var TemplatePedal []byte
 
 //go:embed frames/out_0_13B.bin
 var setup0 []byte

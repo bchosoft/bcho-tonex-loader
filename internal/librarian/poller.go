@@ -19,7 +19,7 @@ func OpenPoller(port string) (*Poller, error) {
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 50*time.Millisecond)
+	dev, err := device.Open(port, device.ModelUnknown, 50*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
@@ -30,17 +30,27 @@ func OpenPoller(port string) (*Poller, error) {
 	return &Poller{dev: dev}, nil
 }
 
-// Read lee el estado actual (asignaciones, slot activo, colores).
+// Read lee el estado actual. En el Tonex Pedal lee el preset activo (registro
+// 81 01) para reflejar en la app los cambios hechos desde el footswitch del pedal.
+// En el Tonex One lee el estado clasico (asignaciones A/B/C, slot activo, colores).
 func (p *Poller) Read() (*QuickState, error) {
+	if p.dev.Model() == device.ModelPedal {
+		idx, err := readActivePresetOpen(p.dev)
+		if err != nil {
+			return nil, err
+		}
+		return &QuickState{ActiveSlot: -1, ActivePreset: idx}, nil
+	}
 	state, err := p.dev.RequestStateWithRetry(2)
 	if err != nil {
 		return nil, err
 	}
 	colors, _ := preset.ParseStateColors(state)
 	return &QuickState{
-		Assignments: preset.ParseStateAssignments(state),
-		ActiveSlot:  preset.ParseActiveSlot(state),
-		Colors:      colors,
+		Assignments:  preset.ParseStateAssignments(state),
+		ActiveSlot:   preset.ParseActiveSlot(state),
+		Colors:       colors,
+		ActivePreset: -1,
 	}, nil
 }
 

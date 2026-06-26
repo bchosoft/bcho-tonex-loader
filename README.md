@@ -60,6 +60,10 @@ El ejecutable queda en `build/bin/`.
 - `internal/assets` — plantilla de subida y frames de setup embebidos.
 - `frontend/` — interfaz de usuario (HTML/CSS/JS vanilla).
 
+### Apoya el proyecto
+
+Si te resulta útil, puedes invitarme a un café: **[buymeacoffee.com/blackchorima](https://buymeacoffee.com/blackchorima)** ☕
+
 ### Licencia
 
 [MIT](LICENSE) — software libre, úsalo, modifícalo y redistribúyelo como quieras.
@@ -113,6 +117,10 @@ wails build
 ```
 
 The binary will be in `build/bin/`.
+
+### Support the project
+
+If you find it useful, you can buy me a coffee: **[buymeacoffee.com/blackchorima](https://buymeacoffee.com/blackchorima)** ☕
 
 ### License
 

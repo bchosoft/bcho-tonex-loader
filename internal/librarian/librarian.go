@@ -21,6 +21,8 @@ var stateSetHeader = []byte{0xb9, 0x03, 0x81, 0x06, 0x03, 0x82, 0x00, 0x00, 0x80
 // Snapshot es la foto completa del pedal.
 type Snapshot struct {
 	Port        string             `json:"port"`
+	Model       string             `json:"model"`     // "one" | "pedal" | "unknown"
+	ModelName   string             `json:"modelName"` // nombre legible
 	Count       int                `json:"count"`
 	Assignments preset.Assignments `json:"assignments"`
 	ActiveSlot  int                `json:"activeSlot"`
@@ -30,9 +32,10 @@ type Snapshot struct {
 
 // QuickState es el estado ligero usado por el polling del footswitch.
 type QuickState struct {
-	Assignments preset.Assignments `json:"assignments"`
-	ActiveSlot  int                `json:"activeSlot"`
-	Colors      []preset.RGB       `json:"colors"`
+	Assignments  preset.Assignments `json:"assignments"`
+	ActiveSlot   int                `json:"activeSlot"`
+	Colors       []preset.RGB       `json:"colors"`
+	ActivePreset int                `json:"activePreset"` // Pedal: indice del preset activo; -1 si N/A
 }
 
 // UploadResult agrupa el ACK, el preset releido y el estado tras una subida.
@@ -97,7 +100,7 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +109,11 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 	if _, err := dev.HelloWithRetry(2); err != nil {
 		return nil, err
 	}
+	// El modelo definitivo lo da la conexion (sondeo HELLO), no el PID: ajustamos
+	// el numero de slots al modelo realmente detectado (One=20, Pedal=150).
+	if mc := dev.Model().SlotCount(); mc > 0 {
+		count = mc
+	}
 	state, err := dev.RequestStateWithRetry(2)
 	if err != nil {
 		return nil, err
@@ -113,9 +121,11 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 	asg := preset.ParseStateAssignments(state)
 	active := preset.ParseActiveSlot(state)
 	colors, _ := preset.ParseStateColors(state)
+	modelKey := dev.Model().Key()
+	modelName := dev.Model().DisplayName()
 
 	if onState != nil {
-		onState(&Snapshot{Port: port, Count: count, Assignments: asg, ActiveSlot: active, Colors: colors})
+		onState(&Snapshot{Port: port, Model: modelKey, ModelName: modelName, Count: count, Assignments: asg, ActiveSlot: active, Colors: colors})
 	}
 
 	fullByte := 0
@@ -128,7 +138,7 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 	presets := make([]preset.Summary, 0, count)
 	for idx := 0; idx < count; idx++ {
 		report(progress, fmt.Sprintf("Leyendo slot %d/%d...", idx+1, count))
-		if err := dev.Send(preset.RequestPresetPayload(idx, fullByte)); err != nil {
+		if err := dev.Send(preset.RequestPresetPayloadFor(idx, fullByte, dev.Proto())); err != nil {
 			return nil, err
 		}
 		payload, err := readPayloadFrame(dev, timeout)
@@ -145,6 +155,8 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 
 	return &Snapshot{
 		Port:        port,
+		Model:       modelKey,
+		ModelName:   modelName,
 		Count:       count,
 		Assignments: asg,
 		ActiveSlot:  active,
@@ -153,13 +165,44 @@ func ReadSnapshot(port string, count int, full bool, progress ProgressFunc,
 	}, nil
 }
 
+// SelectPreset fija el preset activo del pedal (el pedal cambia a ese sonido).
+// Implementado para el Tonex Pedal (registro 81 01); en el Tonex One la seleccion
+// se hace asignando a A/B/Stomp, asi que aqui se rechaza con un mensaje claro.
+func SelectPreset(index int, port string) error {
+	port, err := resolvePort(port)
+	if err != nil {
+		return err
+	}
+	dev, err := device.Open(port, device.ModelUnknown, 0)
+	if err != nil {
+		return err
+	}
+	defer dev.Close()
+	if _, err := dev.HelloWithRetry(2); err != nil {
+		return err
+	}
+	if dev.Model() != device.ModelPedal {
+		return fmt.Errorf("cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp")
+	}
+	if index < 0 || index >= dev.Model().SlotCount() {
+		return fmt.Errorf("slot fuera de rango (0-%d)", dev.Model().SlotCount()-1)
+	}
+	if err := dev.Send(preset.SelectActivePresetPayload(index, dev.Proto())); err != nil {
+		return err
+	}
+	// El pedal responde con el detalle del preset ya activo; lo leemos para dejar
+	// el puerto limpio (si no llega, no es fatal).
+	_, _ = dev.ReadFrame(2 * time.Second)
+	return nil
+}
+
 // ReadStateQuick lee solo el estado (rapido), para el polling del footswitch.
 func ReadStateQuick(port string) (*QuickState, error) {
 	port, err := resolvePort(port)
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 50*time.Millisecond)
+	dev, err := device.Open(port, device.ModelUnknown, 50*time.Millisecond)
 	if err != nil {
 		return nil, err
 	}
@@ -173,10 +216,23 @@ func ReadStateQuick(port string) (*QuickState, error) {
 	}
 	colors, _ := preset.ParseStateColors(state)
 	return &QuickState{
-		Assignments: preset.ParseStateAssignments(state),
-		ActiveSlot:  preset.ParseActiveSlot(state),
-		Colors:      colors,
+		Assignments:  preset.ParseStateAssignments(state),
+		ActiveSlot:   preset.ParseActiveSlot(state),
+		Colors:       colors,
+		ActivePreset: -1,
 	}, nil
+}
+
+// readActivePresetOpen lee el indice del preset activo del Pedal (registro 81 01).
+func readActivePresetOpen(dev *device.Device) (int, error) {
+	if err := dev.Send(preset.RequestActivePresetPayload(dev.Proto())); err != nil {
+		return -1, err
+	}
+	payload, err := readPayloadFrame(dev, 2*time.Second)
+	if err != nil {
+		return -1, err
+	}
+	return preset.ParseActivePresetIndex(payload), nil
 }
 
 // ReadPreset lee un unico preset del pedal.
@@ -188,7 +244,7 @@ func ReadPreset(index int, port string, full bool) (*preset.Summary, error) {
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +271,7 @@ func readPresetPayloadOpen(dev *device.Device, index int, full bool) ([]byte, er
 		fullByte = 1
 		timeout = 8 * time.Second
 	}
-	if err := dev.Send(preset.RequestPresetPayload(index, fullByte)); err != nil {
+	if err := dev.Send(preset.RequestPresetPayloadFor(index, fullByte, dev.Proto())); err != nil {
 		return nil, err
 	}
 	return readPayloadFrame(dev, timeout)
@@ -245,14 +301,14 @@ func BuildUpload(txpPath string, slot int) ([]byte, error) {
 // contenido actual del pedal. `modelNameSuffix` (p.ej. " BCho") se anade al final
 // del nombre del modelo en todas sus apariciones; "" = sin sufijo.
 func ExportPresetTXP(index int, port string, progress ProgressFunc, modelNameSuffix string, overlays ...*upload.Metadata) (*TXPExport, error) {
-	if index < 0 || index >= preset.TonexOnePresetCount {
+	if index < 0 {
 		return nil, fmt.Errorf("index fuera de rango")
 	}
 	port, err := resolvePort(port)
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +318,10 @@ func ExportPresetTXP(index int, port string, progress ProgressFunc, modelNameSuf
 	if _, err := dev.HelloWithRetry(2); err != nil {
 		return nil, err
 	}
-	report(progress, fmt.Sprintf("Leyendo slot %d/%d...", index+1, preset.TonexOnePresetCount))
+	if index >= dev.Model().SlotCount() {
+		return nil, fmt.Errorf("index fuera de rango (0-%d)", dev.Model().SlotCount()-1)
+	}
+	report(progress, fmt.Sprintf("Leyendo slot %d/%d...", index+1, dev.Model().SlotCount()))
 	payload, err := readPresetPayloadOpen(dev, index, true)
 	if err != nil {
 		return nil, err
@@ -282,18 +341,12 @@ func UploadTXPWorkflow(txpPath string, slot int, assignTo, port string, progress
 	if err != nil {
 		return nil, err
 	}
-	report(progress, "Generando payload...")
 	raw, err := os.ReadFile(txpPath)
 	if err != nil {
 		return nil, err
 	}
-	payload, err := upload.BuildBCho(raw, assets.Template, slot)
-	if err != nil {
-		return nil, err
-	}
-	setupFrames := assets.SetupFrames()
 
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +354,21 @@ func UploadTXPWorkflow(txpPath string, slot int, assignTo, port string, progress
 
 	report(progress, "Conectando con el pedal...")
 	if _, err := dev.HelloWithRetry(2); err != nil {
+		return nil, err
+	}
+
+	// El payload y la secuencia de subida dependen del modelo realmente conectado.
+	// Pedal: plantilla +1, sin setup frames. One: plantilla out_3 + 3 setup frames.
+	report(progress, "Generando payload...")
+	var payload []byte
+	var setupFrames [][]byte
+	if dev.Model() == device.ModelPedal {
+		payload, err = upload.BuildBChoPedal(raw, assets.TemplatePedal, slot)
+	} else {
+		payload, err = upload.BuildBCho(raw, assets.Template, slot)
+		setupFrames = assets.SetupFrames()
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -318,7 +386,7 @@ func UploadTXPWorkflow(txpPath string, slot int, assignTo, port string, progress
 		result.Preset = p
 	}
 
-	if assignTo != "" {
+	if assignTo != "" && dev.Model() != device.ModelPedal {
 		label := strings.ToUpper(assignTo)
 		if label == "STOMP" {
 			label = "Stomp"
@@ -358,7 +426,7 @@ func SetSlotAssignment(slotName string, presetIndex int, port string, selectIt b
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +492,7 @@ func SetPresetColor(presetIndex int, rgb preset.RGB, port string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
-	dev, err := device.Open(port, 0)
+	dev, err := device.Open(port, device.ModelUnknown, 0)
 	if err != nil {
 		return nil, err
 	}

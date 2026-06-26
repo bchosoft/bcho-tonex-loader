@@ -29,7 +29,7 @@ const (
 	txpNameOff   = 0x6d98
 )
 
-// Offsets en la plantilla wire (out_3).
+// Offsets en la plantilla wire del Tonex One (out_3).
 const (
 	wireGUIDOff  = 0x8ae
 	wireModelOff = 0x915
@@ -38,6 +38,49 @@ const (
 	wireNameOff  = 0x17
 	wireNameLen  = 33
 )
+
+// pedalShift: la plantilla del Tonex Pedal es identica a la del One pero con el
+// campo de slot 1 byte mas ancho (b9 04 01 00 NN vs b9 03 01 NN), asi que TODO
+// desde el offset del slot en adelante esta desplazado +1. Los marcadores de
+// parametros se localizan dinamicamente (paramMarkerOffsets), no se ven afectados.
+const pedalShift = 1
+
+// wireLayout son los offsets fijos de la plantilla wire, dependientes del modelo.
+type wireLayout struct {
+	guidOff, modelOff, cabOff, slotOff, nameOff int
+	tags                                        []tagField
+	metas                                       []wireMetaSlot
+}
+
+// oneLayout devuelve el layout del Tonex One (offsets tal cual).
+func oneLayout() wireLayout {
+	return wireLayout{
+		guidOff: wireGUIDOff, modelOff: wireModelOff, cabOff: wireCabOff,
+		slotOff: slotOff, nameOff: wireNameOff,
+		tags: tagFields, metas: wireMetaSlots,
+	}
+}
+
+// pedalLayout devuelve el layout del Tonex Pedal (One + pedalShift en todos los
+// offsets wire; el byte de slot queda en 15).
+func pedalLayout() wireLayout {
+	tags := make([]tagField, len(tagFields))
+	for i, tf := range tagFields {
+		tags[i] = tf
+		tags[i].wireOff += pedalShift
+	}
+	metas := make([]wireMetaSlot, len(wireMetaSlots))
+	for i, ws := range wireMetaSlots {
+		metas[i] = ws
+		metas[i].wireOff += pedalShift
+	}
+	return wireLayout{
+		guidOff: wireGUIDOff + pedalShift, modelOff: wireModelOff + pedalShift,
+		cabOff: wireCabOff + pedalShift, slotOff: slotOff + pedalShift,
+		nameOff: wireNameOff + pedalShift,
+		tags:    tags, metas: metas,
+	}
+}
 
 // SlotUnchanged indica a Build que no toque el byte de slot de la plantilla.
 const SlotUnchanged = -1
@@ -270,16 +313,16 @@ func setWireCString(payload []byte, offset, maxLen int, value string) {
 	payload[offset+len(raw)] = 0
 }
 
-func setWireName(payload []byte, name string) {
+func setWireName(payload []byte, name string, nameOff int) {
 	raw := []byte(name)
 	if len(raw) > wireNameLen-1 {
 		raw = raw[:wireNameLen-1]
 	}
 	for i := 0; i < wireNameLen; i++ {
 		if i < len(raw) {
-			payload[wireNameOff+i] = raw[i]
+			payload[nameOff+i] = raw[i]
 		} else {
-			payload[wireNameOff+i] = 0
+			payload[nameOff+i] = 0
 		}
 	}
 }
@@ -351,13 +394,13 @@ func indexZero(b []byte) int {
 
 // applyPresetFromTXP escribe nombre, tags y parametros (base/HWA/HWB) al wire
 // extrayendolos del propio .txp descifrado.
-func applyPresetFromTXP(payload, pt []byte) error {
+func applyPresetFromTXP(payload, pt []byte, lay wireLayout) error {
 	// 1. Nombre
 	name := readStrTag(pt, txpNameOff, 33)
-	setWireName(payload, name)
+	setWireName(payload, name, lay.nameOff)
 
 	// 2. Tags
-	for _, tf := range tagFields {
+	for _, tf := range lay.tags {
 		setWireCString(payload, tf.wireOff, tf.maxLen, readStrTag(pt, tf.txpOff, tf.maxLen))
 	}
 
@@ -385,7 +428,7 @@ func applyPresetFromTXP(payload, pt []byte) error {
 	// copian del .txp al wire para que el preset subido muestre los datos reales
 	// y no los de la plantilla UK100. wireMax acota cada escritura para no pisar
 	// bytes contiguos; el sonido no se ve afectado.
-	for _, ws := range wireMetaSlots {
+	for _, ws := range lay.metas {
 		setWireCString(payload, ws.wireOff, ws.wireMax, readStrTag(pt, ws.txpOff, ws.txpLen))
 	}
 	return nil
@@ -421,39 +464,95 @@ func extractModelCabGUID(pt []byte) (*ModelCabGUID, error) {
 	return mc, nil
 }
 
-func buildFromPlaintext(pt, template []byte, slot int) ([]byte, error) {
+func buildFromPlaintext(pt, template []byte, slot int, lay wireLayout) ([]byte, error) {
 	mc, err := extractModelCabGUID(pt)
 	if err != nil {
 		return nil, err
 	}
 	payload := append([]byte{}, template...)
-	if err := applyPresetFromTXP(payload, pt); err != nil {
+	if err := applyPresetFromTXP(payload, pt, lay); err != nil {
 		return nil, err
 	}
-	copy(payload[wireGUIDOff:wireGUIDOff+16], mc.GUID)
-	copy(payload[wireModelOff:wireModelOff+modelLen], mc.Model)
-	copy(payload[wireCabOff:wireCabOff+cabLen], mc.Cab)
+	copy(payload[lay.guidOff:lay.guidOff+16], mc.GUID)
+	copy(payload[lay.modelOff:lay.modelOff+modelLen], mc.Model)
+	copy(payload[lay.cabOff:lay.cabOff+cabLen], mc.Cab)
 	if slot != SlotUnchanged {
-		payload[slotOff] = byte(slot & 0xFF)
+		payload[lay.slotOff] = byte(slot & 0xFF)
 	}
 	return payload, nil
 }
 
-// Build genera el payload de subida desde el .txp y la plantilla. slot ==
-// SlotUnchanged deja el byte de slot tal cual; en otro caso lo fija. Esta ruta es
-// la transcodificacion fiel del .txp original y se conserva para validacion.
+// Build genera el payload de subida (Tonex One) desde el .txp y la plantilla.
+// slot == SlotUnchanged deja el byte de slot tal cual; en otro caso lo fija. Esta
+// ruta es la transcodificacion fiel del .txp original y se conserva para validacion.
 func Build(txpRaw, template []byte, slot int) ([]byte, error) {
+	return buildFaithful(txpRaw, template, slot, oneLayout())
+}
+
+// BuildPedal es como Build pero para la plantilla del Tonex Pedal (layout +1).
+func BuildPedal(txpRaw, template []byte, slot int) ([]byte, error) {
+	lay := pedalLayout()
+	out, err := buildFaithful(txpRaw, template, slot, lay)
+	if err != nil {
+		return nil, err
+	}
+	if slot != SlotUnchanged {
+		out = pedalSlotFixup(out, lay.slotOff, slot)
+	}
+	return out, nil
+}
+
+func buildFaithful(txpRaw, template []byte, slot int, lay wireLayout) ([]byte, error) {
 	pt, err := DecryptTXP(txpRaw)
 	if err != nil {
 		return nil, err
 	}
-	return buildFromPlaintext(pt, template, slot)
+	return buildFromPlaintext(pt, template, slot, lay)
+}
+
+// pedalSlotFixup ajusta el campo de slot del Pedal para slots >=128. La plantilla
+// (capturada en un slot bajo) codifica el slot como 1 byte en lay.slotOff
+// (`...01 00 <slot>`). Para slots 128..255 el editor lo codifica como `80 <slot>`
+// (encodeValue), un byte MAS, y la longitud declarada [6:8] sube en 1. Insertamos
+// el 0x80 justo antes del byte de slot (el resto del payload se desplaza +1, que es
+// exactamente lo que hace el editor) y corregimos la longitud LE de 16 bits.
+func pedalSlotFixup(payload []byte, slotOff, slot int) []byte {
+	if slot < 0x80 || slot > 0xFF {
+		return payload // 1 byte basta (la plantilla ya lo dejo en slotOff)
+	}
+	out := make([]byte, 0, len(payload)+1)
+	out = append(out, payload[:slotOff]...)
+	out = append(out, 0x80)
+	out = append(out, payload[slotOff:]...)
+	// Longitud declarada en [6:8] (LE16) +1 por el byte insertado.
+	ln := int(out[6]) | int(out[7])<<8
+	ln++
+	out[6] = byte(ln & 0xFF)
+	out[7] = byte((ln >> 8) & 0xFF)
+	return out
 }
 
 // BuildBCho aplica primero la misma conversion que TXP LiBeRaToR y despues
-// construye el payload de subida. Es la ruta usada por la app para importar al
-// pedal: el slot recibe el modelo con GUID/MD5 BCho y metadatos BCho.
+// construye el payload de subida del Tonex One. Es la ruta usada por la app para
+// importar al pedal: el slot recibe el modelo con GUID/MD5 BCho y metadatos BCho.
 func BuildBCho(txpRaw, template []byte, slot int) ([]byte, error) {
+	return buildBChoLayout(txpRaw, template, slot, oneLayout())
+}
+
+// BuildBChoPedal es como BuildBCho pero para la plantilla del Tonex Pedal.
+func BuildBChoPedal(txpRaw, template []byte, slot int) ([]byte, error) {
+	lay := pedalLayout()
+	out, err := buildBChoLayout(txpRaw, template, slot, lay)
+	if err != nil {
+		return nil, err
+	}
+	if slot != SlotUnchanged {
+		out = pedalSlotFixup(out, lay.slotOff, slot)
+	}
+	return out, nil
+}
+
+func buildBChoLayout(txpRaw, template []byte, slot int, lay wireLayout) ([]byte, error) {
 	pt, err := DecryptTXP(txpRaw)
 	if err != nil {
 		return nil, err
@@ -462,5 +561,5 @@ func BuildBCho(txpRaw, template []byte, slot int) ([]byte, error) {
 	if err := applyBChoConversionToPlaintext(pt); err != nil {
 		return nil, err
 	}
-	return buildFromPlaintext(pt, template, slot)
+	return buildFromPlaintext(pt, template, slot, lay)
 }

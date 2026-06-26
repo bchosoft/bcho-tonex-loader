@@ -29,10 +29,6 @@ type Summary struct {
 	HideBCho  bool   `json:"hideBCho,omitempty"`
 }
 
-var requestPresetTemplate = []byte{
-	0xb9, 0x03, 0x81, 0x00, 0x03, 0x82, 0x06, 0x00, 0x80, 0x0b, 0x03, 0xb9, 0x04, 0x0b, 0x01, 0x00, 0x00,
-}
-
 var fxParamIndices = map[string]int{
 	"NoiseGateEnable": 3,
 	"CompEnable":      8,
@@ -50,13 +46,63 @@ var delayModels = map[int]string{0: "Digital", 1: "Tape"}
 
 var dateRe = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 
-// RequestPresetPayload construye el mensaje para pedir el preset `index`.
-// fullDetails: 0 = resumen corto, 1 = preset completo.
+// RequestPresetPayload construye el mensaje para pedir el preset `index` del
+// Tonex One. fullDetails: 0 = resumen corto, 1 = preset completo.
 func RequestPresetPayload(index, fullDetails int) []byte {
-	req := append([]byte{}, requestPresetTemplate...)
-	req[15] = byte(index & 0xFF)
-	req[16] = byte(fullDetails & 0x01)
+	return RequestPresetPayloadFor(index, fullDetails, 0x0b)
+}
+
+// RequestPresetPayloadFor construye la peticion de lectura para el byte de
+// protocolo dado (0x0b = Tonex One, 0x10 = Tonex Pedal). El sub-opcode [4] y los
+// dos bytes de protocolo cambian por modelo. El INDICE se codifica como un valor
+// del protocolo (encodeValue): 1 byte si <128, y `80 <idx>` si 128..255 (el Pedal
+// llega a 150 slots); la longitud declarada [6] se ajusta a la del indice. Esto
+// reproduce exactamente lo que envia el editor oficial (verificado en captura).
+func RequestPresetPayloadFor(index, fullDetails int, proto byte) []byte {
+	subop := byte(0x03)
+	if proto == 0x10 { // Tonex Pedal
+		subop = 0x02
+	}
+	idxEnc := encodeValue(index)
+	msgLen := byte(0x06 + (len(idxEnc) - 1))
+	req := []byte{0xb9, 0x03, 0x81, 0x00, subop, 0x82, msgLen, 0x00, 0x80, proto, 0x03,
+		0xb9, 0x04, proto, 0x01}
+	req = append(req, idxEnc...)
+	req = append(req, byte(fullDetails&0x01))
 	return req
+}
+
+// RequestActivePresetPayload construye la peticion para LEER el preset activo del
+// pedal (registro 81 01). Verificado en captura del Tonex Pedal:
+// `b9 03 00 82 06 00 80 <proto> 03 b9 02 81 01 02 <proto>`.
+func RequestActivePresetPayload(proto byte) []byte {
+	return []byte{0xb9, 0x03, 0x00, 0x82, 0x06, 0x00, 0x80, proto, 0x03,
+		0xb9, 0x02, 0x81, 0x01, 0x02, proto}
+}
+
+// ParseActivePresetIndex extrae el indice del preset activo de la respuesta del
+// registro 81 01 (`b9 03 81 01 02 05 <proto> b9 02 <valor> 00`). El valor viene
+// codificado como en el estado (1 byte si <128, `80 <idx>` si 128..255). -1 si no.
+func ParseActivePresetIndex(payload []byte) int {
+	// Saltar la cabecera `b9 03 81 01 02 ...` y buscar el campo `b9 02 <valor>`.
+	pos := bytes.Index(payload, []byte{0xb9, 0x02})
+	if pos < 0 || pos+2 >= len(payload) {
+		return -1
+	}
+	val, _ := parseValue(payload, pos+2)
+	return val
+}
+
+// SelectActivePresetPayload construye el comando para FIJAR el preset activo del
+// pedal (registro 81 01 02). Verificado en captura del editor para el Tonex Pedal:
+// `b9 03 81 01 02 82 <L> 00 80 <proto> 03 b9 02 <encodeValue(idx)> 00`, donde L es
+// la longitud del campo `b9 02 ... 00`. El indice se codifica como un valor del
+// protocolo (1 byte si <128, `80 <idx>` si 128..255).
+func SelectActivePresetPayload(index int, proto byte) []byte {
+	field := append([]byte{0xb9, 0x02}, encodeValue(index)...)
+	field = append(field, 0x00)
+	msg := []byte{0xb9, 0x03, 0x81, 0x01, 0x02, 0x82, byte(len(field)), 0x00, 0x80, proto, 0x03}
+	return append(msg, field...)
 }
 
 func firstStringAt(payload []byte, offset, maxLen int) string {
