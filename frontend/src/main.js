@@ -575,7 +575,10 @@ function toast(msg, kind = '') {
 }
 function busy(on) {
     state.busy = on;
-    ['btnRefresh', 'btnOpen', 'btnBackup'].forEach((id) => { $(id).disabled = on; });
+    ['btnRefresh', 'btnOpen', 'btnBackup', 'btnPoll'].forEach((id) => {
+        const el = $(id);
+        if (el) el.disabled = on;
+    });
 }
 function rgbCss(c) {
     if (!c) return '#595959';
@@ -1495,8 +1498,10 @@ async function init() {
     if (state.port && state.autoDetected) {
         // Paridad con la versión Python: al arrancar, lee el pedal y empieza el
         // polling del footswitch automáticamente (solo si se detectó un Tonex).
-        await refresh();
-        await togglePolling(true);
+        // Se ejecuta en segundo plano para no bloquear la aparición del overlay de donación.
+        refresh().then(() => {
+            togglePolling(true);
+        });
     } else if (!state.port) {
         setStatus(t('statusReady'), '');
     }

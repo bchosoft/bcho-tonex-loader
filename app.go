@@ -30,6 +30,7 @@ type App struct {
 	ctx context.Context
 
 	mu                sync.Mutex
+	configMu          sync.Mutex
 	pollCancel        context.CancelFunc
 	pollDone          chan struct{}
 	pollPort          string
@@ -58,6 +59,9 @@ func NewApp() *App {
 // navegador para evitar que WebView2 abra el .txp soltado).
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	go func() {
+		_ = a.GetMonetizationConfig()
+	}()
 }
 
 func (a *App) shutdown(_ context.Context) {
