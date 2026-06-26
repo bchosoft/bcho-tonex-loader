@@ -60,6 +60,24 @@ Ve a la pestaña [Releases](../../releases) y descarga el ejecutable de tu siste
 - **macOS**: `BCho-TONEX-Loader-macos-intel.zip` (Intel) · `BCho-TONEX-Loader-macos-apple-silicon.zip` (Apple Silicon)
 - **Linux**: `BCho-TONEX-Loader-linux-amd64`
 
+### Windows: aviso de SmartScreen ("Windows protegió tu PC")
+
+Al abrir el `.exe` por primera vez es normal que aparezca una pantalla azul de
+**Windows SmartScreen** diciendo *"Windows protegió tu PC"* / *editor desconocido*.
+
+**No es un virus.** Ocurre porque la aplicación **no está firmada digitalmente** (un
+certificado de firma cuesta dinero) y, al ser un binario nuevo, todavía no tiene
+"reputación" en Windows. El proyecto es de código abierto: puedes revisar el código o
+[compilarlo tú mismo](#compilar-desde-el-código-fuente).
+
+Para ejecutarla igualmente:
+
+1. En el aviso azul, pulsa **Más información**.
+2. Pulsa **Ejecutar de todas formas**.
+
+(Solo hace falta hacerlo la primera vez.) Si tu navegador bloquea la descarga, elige
+**Conservar / Mantener**.
+
 ### Uso básico
 
 1. Conecta el pedal (TONEX One o TONEX Pedal) por USB.
@@ -144,6 +162,23 @@ Check the [Releases](../../releases) tab for your platform's build:
 - **Windows**: `BCho-TONEX-Loader-windows-amd64.exe`
 - **macOS**: `BCho-TONEX-Loader-macos-intel.zip` (Intel) · `BCho-TONEX-Loader-macos-apple-silicon.zip` (Apple Silicon)
 - **Linux**: `BCho-TONEX-Loader-linux-amd64`
+
+### Windows: SmartScreen warning ("Windows protected your PC")
+
+The first time you open the `.exe`, Windows **SmartScreen** may show a blue
+*"Windows protected your PC"* / *unknown publisher* screen.
+
+**It is not a virus.** It happens because the app is **not code-signed** (a signing
+certificate costs money) and, being a brand-new binary, it has no "reputation" with
+Windows yet. The project is open source: you can review the code or
+[build it yourself](#build-from-source).
+
+To run it anyway:
+
+1. On the blue dialog, click **More info**.
+2. Click **Run anyway**.
+
+(You only need to do this once.) If your browser blocks the download, choose **Keep**.
 
 ### Basic usage
 
