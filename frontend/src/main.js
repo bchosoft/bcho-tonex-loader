@@ -1303,7 +1303,8 @@ async function init() {
     wireEvents();
     subscribeBackend();
     applyMonetizationUI();
-    await loadMonetizationConfig();
+    // Cargar la configuración de monetización en paralelo sin bloquear el arranque
+    loadMonetizationConfig();
     applyLang();
     await loadPorts();
     if (state.port && state.autoDetected) {
