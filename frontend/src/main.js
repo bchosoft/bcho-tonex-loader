@@ -73,6 +73,9 @@ const I18N = {
         pickSubMulti: 'Se subirán a slots consecutivos desde el que elijas.',
         pickSubOne: 'Elige el slot de destino.',
         dropHint: 'Suelta los <b>.txp</b> aquí para subirlos',
+        offlineWarning: 'No se puede conectar con el servidor de control. Modo sin conexión: sin pantalla de donación y con límite de 1 importación y 1 exportación por sesión.',
+        offlineImportLimit: 'Modo sin conexión: límite de 1 importación por sesión.',
+        offlineExportLimit: 'Modo sin conexión: límite de 1 exportación por sesión.',
         // progreso (traducción de los mensajes del backend)
         pConnecting: 'Conectando con el pedal…',
         pReadingSlot: 'Leyendo slot {n}/{total}…',
@@ -147,6 +150,9 @@ const I18N = {
         pickSubMulti: 'They’ll go to consecutive slots from the one you pick.',
         pickSubOne: 'Choose the target slot.',
         dropHint: 'Drop <b>.txp</b> files here to upload',
+        offlineWarning: 'The control server cannot be reached. Offline mode: no donation overlay, limited to 1 import and 1 export per session.',
+        offlineImportLimit: 'Offline mode: limited to 1 import per session.',
+        offlineExportLimit: 'Offline mode: limited to 1 export per session.',
         pConnecting: 'Connecting to the pedal…',
         pReadingSlot: 'Reading slot {n}/{total}…',
         pGenerating: 'Generating upload data…',
@@ -326,6 +332,75 @@ const $ = (id) => document.getElementById(id);
 const backend = () => (window.go && window.go.main && window.go.main.App) || null;
 const rt = () => window.runtime || null;
 
+const monetizationConfig = {
+    monetizationEnabled: false,
+    donateButton: false,
+    overlay: false,
+    restrictions: false,
+    offlineMode: false,
+    activeLimit: 0,
+    importsDone: 0,
+    exportsDone: 0,
+};
+
+function monetizationPartEnabled(part) {
+    return !!monetizationConfig.monetizationEnabled && monetizationConfig[part] !== false;
+}
+
+function applyMonetizationUI() {
+    const donate = $('btnDonate');
+    if (donate) donate.style.display = monetizationPartEnabled('donateButton') ? '' : 'none';
+    showOfflineWarning(!!monetizationConfig.offlineMode);
+}
+
+async function loadMonetizationConfig() {
+    try {
+        const b = backend();
+        if (!b || typeof b.GetUsageMode !== 'function') throw new Error('usage mode unavailable');
+        const cfg = await b.GetUsageMode();
+        Object.assign(monetizationConfig, {
+            monetizationEnabled: !!cfg.monetizationEnabled,
+            donateButton: cfg.donateButton !== false,
+            overlay: cfg.overlay !== false,
+            restrictions: cfg.restrictions !== false,
+            offlineMode: !!cfg.offlineMode,
+            activeLimit: cfg.activeLimit || 0,
+            importsDone: cfg.importsDone || 0,
+            exportsDone: cfg.exportsDone || 0,
+        });
+    } catch (e) {
+        Object.assign(monetizationConfig, {
+            monetizationEnabled: false,
+            donateButton: false,
+            overlay: false,
+            restrictions: true,
+            offlineMode: true,
+            activeLimit: 1,
+            importsDone: 0,
+            exportsDone: 0,
+        });
+    }
+    applyMonetizationUI();
+}
+
+function showOfflineWarning(show) {
+    let el = $('offlineWarning');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'offlineWarning';
+        el.style.cssText = 'display:none;margin:0 18px 12px;padding:10px 14px;border:1px solid rgba(255,184,77,.55);border-radius:8px;background:rgba(255,184,77,.12);color:var(--text);font-size:13px;line-height:1.35;';
+        const topbar = document.querySelector('.topbar');
+        if (topbar && topbar.parentNode) topbar.parentNode.insertBefore(el, topbar.nextSibling);
+    }
+    if (!el) return;
+    el.textContent = t('offlineWarning');
+    el.style.display = show ? 'block' : 'none';
+}
+
+function isOfflineLimitError(e) {
+    return String(e && (e.message || e)).includes('OFFLINE_LIMIT');
+}
+
 /* Modelo del pedal actual ("one" | "pedal" | "unknown") y nº de slots. El Tonex
  * Pedal grande no tiene asignación libre A/B/Stomp (usa bancos), así que esas
  * tarjetas y opciones se ocultan en modo "pedal". */
@@ -437,6 +512,7 @@ function applyLang() {
         b.classList.toggle('active', b.dataset.lang === lang);
     });
     $('dropHint').querySelector('.drop-inner').innerHTML = t('dropHint');
+    applyMonetizationUI();
     // re-render dinámico
     renderCards();
     renderTable();
@@ -838,6 +914,7 @@ function colorFlow(idx) {
 /* ---- donación ---- */
 const DONATE_URL = 'https://buymeacoffee.com/blackchorima';
 function openDonate() {
+    if (!monetizationPartEnabled('donateButton')) return;
     const r = rt();
     // Abrir en el navegador del sistema (no dentro del WebView).
     if (r && typeof r.BrowserOpenURL === 'function') {
@@ -872,8 +949,20 @@ async function uploadPaths(paths, baseSlot) {
     const b = backend();
     // Solo caben (slotCount - baseSlot) presets desde el slot apuntado hacia abajo.
     const maxFit = slotCount() - baseSlot;
-    const overflow = Math.max(0, paths.length - maxFit);
-    const fit = paths.slice(0, maxFit);
+    let overflow = Math.max(0, paths.length - maxFit);
+    let fit = paths.slice(0, maxFit);
+    if (monetizationConfig.offlineMode) {
+        const remaining = Math.max(0, (monetizationConfig.activeLimit || 1) - (monetizationConfig.importsDone || 0));
+        if (remaining <= 0) {
+            showOfflineWarning(true);
+            toast(t('offlineImportLimit'), 'err');
+            return;
+        }
+        if (fit.length > remaining) {
+            overflow += fit.length - remaining;
+            fit = fit.slice(0, remaining);
+        }
+    }
     if (overflow > 0) toast(t('overflowWarn', { n: overflow }), '');
     if (!fit.length) return;
     busy(true);
@@ -887,6 +976,7 @@ async function uploadPaths(paths, baseSlot) {
             const res = await b.UploadAndAssign(fit[i], slot, '', state.port);
             if (res && res.ok) {
                 ok++;
+                if (monetizationConfig.offlineMode) monetizationConfig.importsDone++;
                 done.push(slot);
                 // Si el backend ya devolvió el preset releído, pintamos esa fila ya.
                 if (res.preset) fillRow(res.preset);
@@ -894,6 +984,11 @@ async function uploadPaths(paths, baseSlot) {
                 toast(t('noAck', { file }), '');
             }
         } catch (e) {
+            if (isOfflineLimitError(e)) {
+                showOfflineWarning(true);
+                toast(t('offlineImportLimit'), 'err');
+                break;
+            }
             toast(t('uploadFileErr', { file, e }), 'err');
         }
     }
@@ -907,6 +1002,11 @@ async function uploadPaths(paths, baseSlot) {
 async function exportTXP(idx, bcho = false) {
     const b = backend();
     if (!b) return;
+    if (monetizationConfig.offlineMode && (monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 1)) {
+        showOfflineWarning(true);
+        toast(t('offlineExportLimit'), 'err');
+        return;
+    }
     busy(true);
     setStatus(t('exporting', { n: slotNum(idx) }), 'busy');
     try {
@@ -914,12 +1014,18 @@ async function exportTXP(idx, bcho = false) {
             ? await b.ExportTXPBCho(idx, state.port)
             : await b.ExportTXP(idx, state.port);
         if (path) {
+            if (monetizationConfig.offlineMode) monetizationConfig.exportsDone++;
             setStatus(t('exportSaved', { path }), 'ok');
             toast(t('exportSaved', { path }), 'ok');
         } else {
             setStatus(t('statusReady'), '');
         }
     } catch (e) {
+        if (isOfflineLimitError(e)) {
+            showOfflineWarning(true);
+            toast(t('offlineExportLimit'), 'err');
+            return;
+        }
         setStatus(t('genericErr', { e }), 'err');
         toast(t('exportErr', { e }), 'err');
     } finally {
@@ -1196,6 +1302,8 @@ async function init() {
     installLogo();
     wireEvents();
     subscribeBackend();
+    applyMonetizationUI();
+    await loadMonetizationConfig();
     applyLang();
     await loadPorts();
     if (state.port && state.autoDetected) {

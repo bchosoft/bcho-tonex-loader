@@ -36,6 +36,10 @@ type App struct {
 	pollWanted        bool
 	uploadMeta        map[int]*upload.Metadata
 	hideBChoOnDisplay map[int]bool
+	usageLoaded       bool
+	usageMode         UsageMode
+	importsDone       int
+	exportsDone       int
 }
 
 // NewApp crea la estructura de la app.
@@ -182,6 +186,9 @@ func (a *App) InspectTXP(txpPath string) (*upload.Info, error) {
 // UploadAndAssign sube un .txp al slot indicado y opcionalmente lo asigna.
 // assignTo: "", "A", "B" o "STOMP".
 func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (*librarian.UploadResult, error) {
+	if err := a.checkOfflineImportAllowed(); err != nil {
+		return nil, err
+	}
 	max := slotCountFor(port)
 	if slot < 0 || slot >= max {
 		return nil, fmt.Errorf("slot fuera de rango (0-%d)", max-1)
@@ -211,6 +218,9 @@ func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (
 		res = r
 		return e
 	})
+	if err == nil && res != nil && res.OK {
+		a.addOfflineImport()
+	}
 	return res, err
 }
 
@@ -301,6 +311,9 @@ func (a *App) ExportTXPBCho(slot int, port string) (string, error) {
 }
 
 func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) {
+	if err := a.checkOfflineExportAllowed(); err != nil {
+		return "", err
+	}
 	max := slotCountFor(port)
 	if slot < 0 || slot >= max {
 		return "", fmt.Errorf("slot fuera de rango (0-%d)", max-1)
@@ -342,6 +355,7 @@ func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) 
 	if err := os.WriteFile(path, data, 0o644); err != nil {
 		return "", err
 	}
+	a.addOfflineExport()
 	return path, nil
 }
 
