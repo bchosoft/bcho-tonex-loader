@@ -56,7 +56,7 @@ jobs:
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: |
-          wails build -platform ${{ matrix.platform }}
+          wails build -platform ${{ matrix.platform }} -tags webkit2_41
           cp build/bin/go-tonex-loader build/bin/${{ matrix.artifact }}
 
       - name: Build (macOS)
@@ -73,6 +73,7 @@ jobs:
 
   release:
     needs: build
+    if: always()
     runs-on: ubuntu-latest
     permissions:
       contents: write
