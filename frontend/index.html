@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Tonex Loader</title>
+</head>
+<body>
+<div id="app">
+    <header class="topbar">
+        <div class="brand">
+            <span id="logo" class="logo"></span>
+            <div class="brand-text">
+                <h1>Tonex&nbsp;Loader</h1>
+                <span id="subtitle" class="subtitle" data-i18n="subtitle">IK Multimedia Tonex One · USB</span>
+                <span class="tagline">by Blackchorima</span>
+            </div>
+        </div>
+        <div class="toolbar">
+            <div id="langSwitch" class="lang-switch">
+                <button class="lang-btn" data-lang="es" title="Español"></button>
+                <button class="lang-btn" data-lang="en" title="English"></button>
+            </div>
+            <select id="portSelect" data-i18n-title="portTitle" title="Puerto COM del pedal"></select>
+            <button id="btnRefresh" class="btn primary" data-i18n="btnRefresh">⟳ Refrescar</button>
+            <button id="btnOpen" class="btn" data-i18n="btnOpen">📂 Abrir .txp</button>
+            <button id="btnBackup" class="btn" data-i18n="btnBackup">💾 Backup</button>
+            <button id="btnPoll" class="btn toggle" data-i18n-title="pollTitle" title="Seguir el footswitch en vivo">● Live</button>
+            <button id="btnHelp" class="btn" data-i18n="btnHelp">❔ Ayuda</button>
+        </div>
+    </header>
+
+    <section id="cards" class="cards"></section>
+
+    <section class="table-wrap">
+        <table id="slots">
+            <thead>
+            <tr>
+                <th class="col-slot" data-i18n="thSlot">Slot</th>
+                <th data-i18n="thName">Nombre</th>
+                <th data-i18n="thCharacter">Character</th>
+                <th data-i18n="thTone">Tone Model</th>
+                <th data-i18n="thStomp">Stomp</th>
+                <th data-i18n="thAmp">Amp</th>
+                <th data-i18n="thCab">Cab</th>
+                <th class="col-assigned" data-i18n="thAssigned">Asignado</th>
+            </tr>
+            </thead>
+            <tbody id="slotBody"></tbody>
+        </table>
+    </section>
+
+    <footer class="statusbar">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="status">…</span>
+        <span id="pollBadge" class="poll-badge hidden">● LIVE</span>
+    </footer>
+</div>
+
+<div id="ctxMenu" class="ctx-menu hidden"></div>
+<div id="overlay" class="overlay hidden"><div id="modal" class="modal"></div></div>
+<div id="dropHint" class="drop-hint hidden">
+    <div class="drop-inner"></div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="./src/main.js" type="module"></script>
+</body>
+</html>
