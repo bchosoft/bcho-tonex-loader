@@ -354,6 +354,21 @@ let licenseInfo = {
 let countdownTimer = null;
 const COUNTDOWN_SECONDS = 45;
 
+function waitWailsReady() {
+    return new Promise((resolve) => {
+        if (window.go && window.go.main && window.go.main.App) {
+            resolve();
+        } else {
+            const check = setInterval(() => {
+                if (window.go && window.go.main && window.go.main.App) {
+                    clearInterval(check);
+                    resolve();
+                }
+            }, 30);
+        }
+    });
+}
+
 function monetizationPartEnabled(part) {
     return !!monetizationConfig.monetizationEnabled && monetizationConfig[part] !== false;
 }
@@ -387,6 +402,7 @@ async function loadMonetizationConfig() {
             b.CheckDonation().then((ok) => { if (ok) donationUnlockSuccess(); }).catch(() => {});
         }
     } catch (e) {
+        console.error("Monetization config load error:", e);
         Object.assign(monetizationConfig, {
             monetizationEnabled: false,
             donateButton: false,
@@ -1467,6 +1483,7 @@ function subscribeBackend() {
 }
 
 async function init() {
+    await waitWailsReady();
     installLogo();
     wireEvents();
     subscribeBackend();
