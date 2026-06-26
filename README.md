@@ -1,43 +1,74 @@
 # BCho TONEX Loader
 
+<p align="center">
+  <img src="docs/banner.png" alt="BCho TONEX Loader" width="420">
+</p>
+
+<p align="center">
+  Carga presets <code>.txp</code> en tu <b>IK Multimedia TONEX One</b> y <b>TONEX Pedal</b> por USB — sin abrir el editor oficial.<br>
+  <i>Load <code>.txp</code> presets onto your <b>IK Multimedia TONEX One</b> and <b>TONEX Pedal</b> over USB — without the official editor.</i>
+</p>
+
+<p align="center">
+  <a href="../../releases"><img src="https://img.shields.io/github/v/release/bchosoft/bcho-tonex-loader?label=descarga%20%2F%20download" alt="Release"></a>
+  <img src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-red" alt="Plataformas">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+</p>
+
 [Español](#español) | [English](#english)
 
 ---
 
 ## Español
 
-Herramienta de código abierto (Go + [Wails](https://wails.io)) para subir presets `.txp` a un **IK Multimedia TONEX One / TONEX Pedal** por USB, sin necesidad de abrir el software oficial TONEX Editor.
+Herramienta de **código abierto** (Go + [Wails](https://wails.io)) para subir presets `.txp` a un **IK Multimedia TONEX One** o **TONEX Pedal** por USB, **detectando automáticamente** qué pedal tienes conectado y adaptando la interfaz a cada uno.
 
-No es un sustituto del TONEX Editor: no edita modelos ni amplificadores, solo permite **mover presets `.txp` al pedal y leer su estado** directamente.
+> ⚠️ **No sustituye al TONEX Editor.** No crea, edita, captura ni entrena modelos de amplificador. Su trabajo es **mover presets `.txp` al pedal, leerlos y gestionarlos** directamente por USB.
+
+### Compatibilidad
+
+| | **TONEX One** | **TONEX Pedal** |
+|---|---|---|
+| Slots / presets | 20 | 150 (50 bancos × 3) |
+| Numeración en la app | 1–20 | **0–149** (igual que la pantalla del pedal) |
+| Subir `.txp` | ✅ | ✅ |
+| Exportar slot a `.txp` | ✅ | ✅ |
+| Cambiar preset activo desde la app | — (usa A/B/Stomp) | ✅ clic en un slot |
+| Reflejar en la app el footswitch del pedal | ✅ (A/B/Stomp activo) | ✅ (preset activo en vivo) |
+| Asignar slots a A / B / Stomp | ✅ | — (el Pedal usa bancos) |
+| Color del LED por slot | ✅ | — |
+
+La app detecta el modelo por USB. Si por lo que sea no lo reconoce, puedes **elegir el puerto COM a mano** y la conexión identifica el pedal al conectar.
 
 ### Funciones
 
-- Leer los 20 slots del pedal (nombre, ampli, modelo, asignaciones A/B/Stomp).
-- Subir un `.txp` arrastrándolo a un slot.
-- Asignar slots a los footswitches A/B/Stomp.
-- Cambiar el color del LED de cada slot.
-- Hacer backup de un slot.
-- Exportar un slot del pedal de vuelta a `.txp` (fiel o con firma BCho).
-- Sondeo en vivo del footswitch activo.
-- Interfaz en español/inglés con selector de idioma.
+- **Detección automática** del modelo (One / Pedal) y UI adaptada a cada uno.
+- **Leer** todos los presets del pedal en vivo (nombre, character, ampli, pantalla, efectos).
+- **Subir** cualquier `.txp` a cualquier slot: arrastrándolo a la ventana, con **Abrir .txp**, o clic derecho en un slot → *Subir aquí*. Si sueltas varios, se cargan en slots consecutivos.
+- **Exportar** un slot del pedal de vuelta a `.txp` (fiel, o con firma BCho).
+- **Cambio de preset bidireccional** (TONEX Pedal): clic en un slot → el pedal cambia a ese preset; y al pisar el footswitch del pedal, la app resalta el preset activo al instante.
+- **Asignar** un slot a A / B / Stomp y **cambiar el color del LED** (solo TONEX One).
+- **Backup** de los slots del pedal a un archivo JSON.
+- Recarga **solo el slot cambiado** tras una subida (rápido, sobre todo con 150 presets).
+- Interfaz en **español / inglés** con selector de idioma.
 
 ### Descarga
 
-Ve a la pestaña [Releases](../../releases) y descarga el instalador/ejecutable de tu sistema:
+Ve a la pestaña [Releases](../../releases) y descarga el ejecutable de tu sistema:
 
 - **Windows**: `BCho-TONEX-Loader-windows-amd64.exe`
-- **macOS**: `BCho-TONEX-Loader-macos-*.zip` (Intel y Apple Silicon)
+- **macOS**: `BCho-TONEX-Loader-macos-intel.zip` (Intel) · `BCho-TONEX-Loader-macos-apple-silicon.zip` (Apple Silicon)
 - **Linux**: `BCho-TONEX-Loader-linux-amd64`
 
 ### Uso básico
 
-1. Conecta el pedal por USB.
-2. Cierra TONEX Editor si está abierto (solo un programa puede usar el puerto serie a la vez).
-3. Abre la aplicación.
-4. Pulsa refrescar para leer el pedal y elige el slot de destino.
-5. Arrastra o abre un archivo `.txp` para subirlo.
+1. Conecta el pedal (TONEX One o TONEX Pedal) por USB.
+2. **Cierra el TONEX Editor** si está abierto (solo un programa puede usar el puerto a la vez).
+3. Abre la aplicación: detecta el pedal y lee sus presets.
+4. Arrastra un `.txp` a la ventana — o pulsa **Abrir .txp** — y elige el slot de destino.
+5. **TONEX Pedal**: haz clic en un slot para que el pedal cambie a ese preset. **TONEX One**: carga el slot en A/B/Stomp para oírlo.
 
-### Build desde el código fuente
+### Compilar desde el código fuente
 
 Requisitos: [Go](https://go.dev) 1.25+, [Node.js](https://nodejs.org) 18+, [Wails v2](https://wails.io/docs/gettingstarted/installation).
 
@@ -52,12 +83,13 @@ El ejecutable queda en `build/bin/`.
 
 ### Estructura del proyecto
 
-- `app.go` — backend Wails expuesto al frontend; serializa el acceso al pedal y expone import/export.
+- `app.go` — backend Wails expuesto al frontend; serializa el acceso al pedal y expone leer/subir/exportar/seleccionar.
 - `main.go` — arranque de la app Wails.
-- `internal/device` — comunicación serie/USB con el pedal.
-- `internal/librarian` — workflows de alto nivel: snapshot, upload, export, asignaciones, color, polling.
-- `internal/upload` — parser/conversor entre `.txp` y el payload en el cable del pedal.
-- `internal/assets` — plantilla de subida y frames de setup embebidos.
+- `internal/device` — comunicación serie/USB; detección de modelo y protocolo por pedal.
+- `internal/librarian` — workflows de alto nivel: snapshot, subida, exportación, asignación, color, selección y polling.
+- `internal/upload` — parser/conversor entre `.txp` y el payload en el cable (One y Pedal).
+- `internal/preset` — parseo de presets/estado y codificación de comandos.
+- `internal/assets` — plantillas de subida embebidas (One y Pedal).
 - `frontend/` — interfaz de usuario (HTML/CSS/JS vanilla).
 
 ### Apoya el proyecto
@@ -68,42 +100,58 @@ Si te resulta útil, puedes invitarme a un café: **[buymeacoffee.com/blackchori
 
 [MIT](LICENSE) — software libre, úsalo, modifícalo y redistribúyelo como quieras.
 
-Este proyecto no está afiliado ni respaldado por IK Multimedia. "TONEX" es marca de IK Multimedia.
+Este proyecto no está afiliado ni respaldado por IK Multimedia. "TONEX" es marca de IK Multimedia. Úsalo bajo tu responsabilidad.
 
 ---
 
 ## English
 
-Open-source tool (Go + [Wails](https://wails.io)) to upload `.txp` presets to an **IK Multimedia TONEX One / TONEX Pedal** over USB, without needing to open the official TONEX Editor software.
+**Open-source** tool (Go + [Wails](https://wails.io)) to upload `.txp` presets to an **IK Multimedia TONEX One** or **TONEX Pedal** over USB. It **auto-detects** which pedal is connected and adapts the UI to each one.
 
-It is not a replacement for TONEX Editor: it does not edit amp/cab models, it only **moves `.txp` presets to the pedal and reads its state** directly.
+> ⚠️ **It is not a replacement for the TONEX Editor.** It does not create, edit, capture or train amp models. Its job is to **move `.txp` presets to the pedal, read them and manage them** directly over USB.
+
+### Compatibility
+
+| | **TONEX One** | **TONEX Pedal** |
+|---|---|---|
+| Slots / presets | 20 | 150 (50 banks × 3) |
+| Numbering in the app | 1–20 | **0–149** (matches the pedal screen) |
+| Upload `.txp` | ✅ | ✅ |
+| Export slot to `.txp` | ✅ | ✅ |
+| Change active preset from the app | — (uses A/B/Stomp) | ✅ click a slot |
+| Reflect the pedal's footswitch in the app | ✅ (active A/B/Stomp) | ✅ (live active preset) |
+| Assign slots to A / B / Stomp | ✅ | — (the Pedal uses banks) |
+| Per-slot LED colour | ✅ | — |
+
+The app detects the model over USB. If it can't, you can **pick the COM port manually** and the connection identifies the pedal on connect.
 
 ### Features
 
-- Read all 20 pedal slots (name, amp, model, A/B/Stomp assignments).
-- Upload a `.txp` by dragging it onto a slot.
-- Assign slots to the A/B/Stomp footswitches.
-- Change each slot's LED color.
-- Back up a slot.
-- Export a pedal slot back to `.txp` (faithful or with BCho signature).
-- Live polling of the active footswitch.
-- Spanish/English UI with a language switcher.
+- **Auto-detect** the model (One / Pedal) with a UI tailored to each.
+- **Read** all pedal presets live (name, character, amp, cab, effects).
+- **Upload** any `.txp` to any slot: drag onto the window, use **Open .txp**, or right-click a slot → *Upload here*. Drop several and they fill consecutive slots.
+- **Export** a pedal slot back to `.txp` (faithful, or with BCho signature).
+- **Bidirectional preset switching** (TONEX Pedal): click a slot → the pedal jumps to it; press the pedal's footswitch → the app highlights the active preset instantly.
+- **Assign** a slot to A / B / Stomp and **change the LED colour** (TONEX One only).
+- **Back up** the pedal's slots to a JSON file.
+- Refreshes **only the changed slot** after an upload (fast, especially with 150 presets).
+- **Spanish / English** UI with a language switcher.
 
 ### Download
 
 Check the [Releases](../../releases) tab for your platform's build:
 
 - **Windows**: `BCho-TONEX-Loader-windows-amd64.exe`
-- **macOS**: `BCho-TONEX-Loader-macos-*.zip` (Intel and Apple Silicon)
+- **macOS**: `BCho-TONEX-Loader-macos-intel.zip` (Intel) · `BCho-TONEX-Loader-macos-apple-silicon.zip` (Apple Silicon)
 - **Linux**: `BCho-TONEX-Loader-linux-amd64`
 
 ### Basic usage
 
-1. Connect the pedal over USB.
-2. Close TONEX Editor if it's open (only one program can hold the serial port at a time).
-3. Open the app.
-4. Refresh to read the pedal and pick a destination slot.
-5. Drag or open a `.txp` file to upload it.
+1. Connect the pedal (TONEX One or TONEX Pedal) over USB.
+2. **Close the TONEX Editor** if it's open (only one program can hold the port at a time).
+3. Open the app: it detects the pedal and reads its presets.
+4. Drag a `.txp` onto the window — or click **Open .txp** — and pick the target slot.
+5. **TONEX Pedal**: click a slot to make the pedal switch to it. **TONEX One**: load the slot into A/B/Stomp to hear it.
 
 ### Build from source
 
@@ -118,6 +166,17 @@ wails build
 
 The binary will be in `build/bin/`.
 
+### Project layout
+
+- `app.go` — Wails backend exposed to the frontend; serializes pedal access and exposes read/upload/export/select.
+- `main.go` — Wails app entry point.
+- `internal/device` — serial/USB communication; per-pedal model and protocol detection.
+- `internal/librarian` — high-level workflows: snapshot, upload, export, assignment, colour, select and polling.
+- `internal/upload` — parser/converter between `.txp` and the on-wire payload (One and Pedal).
+- `internal/preset` — preset/state parsing and command encoding.
+- `internal/assets` — embedded upload templates (One and Pedal).
+- `frontend/` — UI (vanilla HTML/CSS/JS).
+
 ### Support the project
 
 If you find it useful, you can buy me a coffee: **[buymeacoffee.com/blackchorima](https://buymeacoffee.com/blackchorima)** ☕
@@ -126,4 +185,4 @@ If you find it useful, you can buy me a coffee: **[buymeacoffee.com/blackchorima
 
 [MIT](LICENSE) — free software, use it, modify it, redistribute it as you like.
 
-This project is not affiliated with or endorsed by IK Multimedia. "TONEX" is a trademark of IK Multimedia.
+This project is not affiliated with or endorsed by IK Multimedia. "TONEX" is a trademark of IK Multimedia. Use it at your own risk.
