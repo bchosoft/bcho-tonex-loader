@@ -1061,7 +1061,7 @@ function colorFlow(idx) {
 }
 
 /* ---- donación ---- */
-const DONATE_URL = 'https://buymeacoffee.com/blackchorima';
+const DONATE_URL = 'https://ko-fi.com/bchosoft';
 function openDonate() {
     if (!monetizationPartEnabled('donateButton')) return;
     const r = rt();

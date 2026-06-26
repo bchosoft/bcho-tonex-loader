@@ -21,7 +21,7 @@ import (
 // Donation / unlock configuration for this app.
 const (
 	licenseServerURL = "https://bcho-donations.bcho.workers.dev"
-	donateURL        = "https://buymeacoffee.com/blackchorima"
+	donateURL        = "https://ko-fi.com/bchosoft"
 
 	appCode        = "ldr"               // namespace used by the server when signing
 	appSalt        = "BCho_TONEX_Loader" // makes the hardware id app-specific

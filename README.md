@@ -112,7 +112,7 @@ El ejecutable queda en `build/bin/`.
 
 ### Apoya el proyecto
 
-Si te resulta útil, puedes invitarme a un café: **[buymeacoffee.com/blackchorima](https://buymeacoffee.com/blackchorima)** ☕
+Si te resulta útil, puedes invitarme a un café: **[ko-fi.com/bchosoft](https://ko-fi.com/bchosoft)** ☕
 
 ### Licencia
 
@@ -214,7 +214,7 @@ The binary will be in `build/bin/`.
 
 ### Support the project
 
-If you find it useful, you can buy me a coffee: **[buymeacoffee.com/blackchorima](https://buymeacoffee.com/blackchorima)** ☕
+If you find it useful, you can buy me a coffee: **[ko-fi.com/bchosoft](https://ko-fi.com/bchosoft)** ☕
 
 ### License
 
