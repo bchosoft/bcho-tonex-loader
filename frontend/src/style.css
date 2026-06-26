@@ -418,7 +418,7 @@ table#slots tbody tr.drop-row-target td:first-child { box-shadow: inset 3px 0 0 
     background: var(--glass-strong);
     border: 1px solid rgba(255, 154, 61, 0.35);
     border-radius: 18px;
-    max-width: 680px; width: 100%; max-height: 92vh; overflow-y: auto; /* Más ancho (antes 580px) */
+    max-width: 760px; width: 100%; max-height: 92vh; overflow-y: auto; /* Más ancho (antes 680px) */
     padding: 38px 40px 30px; text-align: center; /* Mayor padding */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(255, 154, 61, 0.15);
 }
@@ -430,25 +430,25 @@ table#slots tbody tr.drop-row-target td:first-child { box-shadow: inset 3px 0 0 
 .donation-close:hover { color: var(--red); }
 .donation-overlay.closable .donation-close { display: block; }
 .donation-coffee { font-size: 54px; margin-bottom: 8px; } /* Más grande (antes 44px) */
-.donation-card h2 { margin: 0 0 20px; font-size: 24px; font-weight: 800; color: var(--text); } /* Más grande (antes 20px) */
-.donation-text { text-align: left; font-size: 15.5px; line-height: 1.6; color: var(--muted); } /* Más grande (antes 13.5px) */
+.donation-card h2 { margin: 0 0 20px; font-size: 28px; font-weight: 800; color: var(--text); } /* Más grande (antes 24px) */
+.donation-text { text-align: left; font-size: 17.5px; line-height: 1.6; color: var(--muted); } /* Más grande (antes 15.5px) */
 .donation-text p { margin: 0 0 14px; }
 .donation-text b { color: var(--text); }
 .donation-token-box {
     background: rgba(0, 0, 0, 0.25); border: 1px dashed rgba(255, 154, 61, 0.4);
     border-radius: 12px; padding: 16px; margin: 10px 0 22px;
 }
-.donation-token-label { display: block; font-size: 13.5px; color: var(--muted); margin-bottom: 8px; } /* Más grande (antes 12px) */
+.donation-token-label { display: block; font-size: 15px; color: var(--muted); margin-bottom: 8px; } /* Más grande (antes 13.5px) */
 #donationToken {
-    font-family: 'Courier New', monospace; font-size: 24px; font-weight: 700; /* Más grande (antes 20px) */
+    font-family: 'Courier New', monospace; font-size: 28px; font-weight: 700; /* Más grande (antes 24px) */
     letter-spacing: 2px; color: #ff9a3d; user-select: all;
 }
 .donation-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 .donation-actions .btn { font-size: 15px; padding: 10px 20px; } /* Botones más grandes */
-.donation-status { min-height: 20px; margin-top: 14px; font-size: 15px; color: var(--muted); } /* Más grande (antes 13px) */
-.donation-countdown { margin-top: 16px; font-size: 15px; font-weight: 700; color: var(--muted); } /* Más grande (antes 13px) */
+.donation-status { min-height: 20px; margin-top: 14px; font-size: 16.5px; color: var(--muted); } /* Más grande (antes 15px) */
+.donation-countdown { margin-top: 16px; font-size: 17px; font-weight: 700; color: var(--muted); } /* Más grande (antes 15px) */
 .countdown-num {
-    font-size: 26px;
+    font-size: inherit;
     font-weight: 800;
     color: #ff9a3d; /* Striking amber color */
     margin: 0 5px;
