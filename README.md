@@ -48,7 +48,7 @@ La app detecta el modelo por USB. Si por lo que sea no lo reconoce, puedes **ele
 - **Exportar** un slot del pedal de vuelta a `.txp` (fiel, o con firma BCho).
 - **Cambio de preset bidireccional** (TONEX Pedal): clic en un slot → el pedal cambia a ese preset; y al pisar el footswitch del pedal, la app resalta el preset activo al instante.
 - **Asignar** un slot a A / B / Stomp y **cambiar el color del LED** (solo TONEX One).
-- **Backup** de los slots del pedal a un archivo JSON.
+- **Backup y Restore completos**: **Backup** exporta todos los slots a un único `.zip` (un `.txp` por slot + un `manifest.json` con asignaciones A/B/Stomp y colores de LED), y **Restaurar** vuelve a cargar ese `.zip` en el pedal. Ideal para migrar a otro pedal, recuperar tras un reset o clonar una configuración.
 - Recarga **solo el slot cambiado** tras una subida (rápido, sobre todo con 150 presets).
 - Interfaz en **español / inglés** con selector de idioma.
 
@@ -155,7 +155,7 @@ The app detects the model over USB. If it can't, you can **pick the COM port man
 - **Export** a pedal slot back to `.txp` (faithful, or with BCho signature).
 - **Bidirectional preset switching** (TONEX Pedal): click a slot → the pedal jumps to it; press the pedal's footswitch → the app highlights the active preset instantly.
 - **Assign** a slot to A / B / Stomp and **change the LED colour** (TONEX One only).
-- **Back up** the pedal's slots to a JSON file.
+- **Full Backup & Restore**: **Backup** exports every slot to a single `.zip` (one `.txp` per slot + a `manifest.json` with A/B/Stomp assignments and LED colours), and **Restore** loads that `.zip` back onto the pedal. Ideal for migrating to another pedal, recovering after a reset or cloning a setup.
 - Refreshes **only the changed slot** after an upload (fast, especially with 150 presets).
 - **Spanish / English** UI with a language switcher.
 

@@ -61,9 +61,17 @@ const I18N = {
         exporting: 'Exportando slot {n} a .txp...',
         exportSaved: '.txp exportado: {path}',
         exportErr: 'No se pudo exportar .txp: {e}',
-        backupFirst: 'Primero refresca el pedal.',
+        btnBackupTitle: 'Backup completo del pedal a un .zip restaurable',
+        btnRestore: '♻ Restaurar',
+        btnRestoreTitle: 'Restaurar un backup .zip al pedal',
+        backupFirst: 'Conecta el pedal primero.',
+        backupRunning: 'Creando backup… {done}/{total} slots',
         backupSaved: 'Backup guardado: {path}',
         backupErr: 'Error guardando backup: {e}',
+        restoreRunning: 'Restaurando… {done}/{total}',
+        restoreDone: 'Restauración completada: {ok}/{total} slots.',
+        restoreDoneFailed: 'Restauración: {ok}/{total} slots ({fail} con error).',
+        restoreErr: 'Error restaurando: {e}',
         pollErr: 'Polling: {e}',
         pollStopped: 'Polling detenido: {msg}',
         droppedToast: '{n} .txp recibido(s). Elige el slot de destino.',
@@ -84,6 +92,10 @@ const I18N = {
         pUploadingSlot: 'Subiendo al slot {n}…',
         pReadingUpdated: 'Leyendo el slot actualizado…',
         pLoadingInto: 'Cargando en {pos}…',
+        pExporting: 'Exportando slot {n}/{total}…',
+        pRestoringSlot: 'Restaurando slot {n}/{total}…',
+        pRestoringColors: 'Restaurando colores…',
+        pRestoringAssign: 'Restaurando asignaciones…',
         helpTitle: 'Ayuda — Tonex Loader',
     },
     en: {
@@ -138,9 +150,17 @@ const I18N = {
         exporting: 'Exporting slot {n} to .txp...',
         exportSaved: '.txp exported: {path}',
         exportErr: 'Could not export .txp: {e}',
-        backupFirst: 'Refresh the pedal first.',
+        btnBackupTitle: 'Full pedal backup to a restorable .zip',
+        btnRestore: '♻ Restore',
+        btnRestoreTitle: 'Restore a .zip backup to the pedal',
+        backupFirst: 'Connect the pedal first.',
+        backupRunning: 'Creating backup… {done}/{total} slots',
         backupSaved: 'Backup saved: {path}',
         backupErr: 'Error saving backup: {e}',
+        restoreRunning: 'Restoring… {done}/{total}',
+        restoreDone: 'Restore finished: {ok}/{total} slots.',
+        restoreDoneFailed: 'Restore: {ok}/{total} slots ({fail} failed).',
+        restoreErr: 'Error restoring: {e}',
         pollErr: 'Polling: {e}',
         pollStopped: 'Polling stopped: {msg}',
         droppedToast: '{n} .txp received. Choose the target slot.',
@@ -160,6 +180,10 @@ const I18N = {
         pUploadingSlot: 'Uploading to slot {n}…',
         pReadingUpdated: 'Reading the updated slot…',
         pLoadingInto: 'Loading into {pos}…',
+        pExporting: 'Exporting slot {n}/{total}…',
+        pRestoringSlot: 'Restoring slot {n}/{total}…',
+        pRestoringColors: 'Restoring colours…',
+        pRestoringAssign: 'Restoring assignments…',
         helpTitle: 'Help — Tonex Loader',
     },
 };
@@ -204,8 +228,20 @@ const HELP_HTML = {
       <li><b>Asignar</b> un slot al footswitch <b>A</b>, <b>B</b> o <b>Stomp</b> (clic derecho → <i>Cargar</i>,
       o arrastrando una fila sobre una tarjeta).</li>
       <li>Ver en <b>tiempo real</b> qué preset está activo al pisar el footswitch.</li>
-      <li><b>Cambiar el color del LED</b> de un slot (clic en el punto de color).</li>
-      <li><b>Hacer copia de seguridad</b> de los slots del pedal en un archivo JSON.</li>
+      <li><b>Cambiar el color del LED</b> de un slot (clic en el punto de color, solo TONEX One).</li>
+      <li><b>Backup y Restore completos</b>: <b>Backup</b> exporta TODOS los slots a un único <b>.zip</b>
+      (un <b>.txp</b> por slot + las asignaciones A/B/Stomp y los colores de LED). <b>Restaurar</b> vuelve
+      a cargar ese .zip en el pedal, dejándolo igual que cuando lo guardaste.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup y Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: pulsa <b>💾 Backup</b> y elige dónde guardar el <b>.zip</b>. Contiene un <b>.txp</b>
+      fiel de cada slot y un <code>manifest.json</code> con el modelo, las asignaciones A/B/Stomp y los colores
+      (estos dos últimos solo en el TONEX One).</li>
+      <li><b>Restaurar</b>: pulsa <b>♻ Restaurar</b>, elige un <b>.zip</b> hecho con esta app y confirma.
+      <b>Sobrescribe</b> el contenido del pedal con el del backup (esta acción no se puede deshacer).</li>
+      <li>Sirve para <b>migrar a otro pedal</b>, <b>recuperar</b> tras un reset o <b>clonar</b> una configuración.</li>
     </ul>
 
     <div class="help-section">🚫 Qué NO puedes hacer</div>
@@ -236,8 +272,20 @@ const HELP_HTML = {
       <li><b>Assign</b> a slot to footswitch <b>A</b>, <b>B</b> or <b>Stomp</b> (right-click → <i>Load</i>,
       or drag a row onto a card).</li>
       <li>See in <b>real time</b> which preset is active when you press the footswitch.</li>
-      <li><b>Change a slot's LED colour</b> (click the colour dot).</li>
-      <li><b>Back up</b> the pedal's slots to a JSON file.</li>
+      <li><b>Change a slot's LED colour</b> (click the colour dot, TONEX One only).</li>
+      <li><b>Full Backup &amp; Restore</b>: <b>Backup</b> exports EVERY slot to a single <b>.zip</b>
+      (one <b>.txp</b> per slot + the A/B/Stomp assignments and LED colours). <b>Restore</b> loads that .zip
+      back onto the pedal, leaving it exactly as it was when you saved it.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup &amp; Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: click <b>💾 Backup</b> and choose where to save the <b>.zip</b>. It holds a faithful
+      <b>.txp</b> of every slot plus a <code>manifest.json</code> with the model, the A/B/Stomp assignments
+      and the colours (the last two only on the TONEX One).</li>
+      <li><b>Restore</b>: click <b>♻ Restore</b>, pick a <b>.zip</b> made with this app and confirm.
+      It <b>overwrites</b> the pedal's contents with the backup (this cannot be undone).</li>
+      <li>Great for <b>migrating to another pedal</b>, <b>recovering</b> after a reset, or <b>cloning</b> a setup.</li>
     </ul>
 
     <div class="help-section">🚫 What you CANNOT do</div>
@@ -575,7 +623,7 @@ function toast(msg, kind = '') {
 }
 function busy(on) {
     state.busy = on;
-    ['btnRefresh', 'btnOpen', 'btnBackup', 'btnPoll'].forEach((id) => {
+    ['btnRefresh', 'btnOpen', 'btnBackup', 'btnRestore', 'btnPoll'].forEach((id) => {
         const el = $(id);
         if (el) el.disabled = on;
     });
@@ -1261,15 +1309,60 @@ async function handleFileDrop(x, y, paths) {
     await uploadPaths(txps, base);
 }
 
-/* ---- backup ---- */
+/* ---- backup / restore (.zip con los .txp + manifest) ---- */
 async function backup() {
     const b = backend();
-    if (!b || !state.snapshot) { toast(t('backupFirst'), ''); return; }
+    if (!b || !state.port) { toast(t('backupFirst'), ''); return; }
+    busy(true);
     try {
-        const path = await b.Backup(JSON.stringify(state.snapshot, null, 2));
-        if (path) toast(t('backupSaved', { path }), 'ok');
+        const path = await b.BackupZip(state.port);
+        if (path) {
+            if (monetizationConfig.offlineMode || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked)) {
+                monetizationConfig.exportsDone = (monetizationConfig.exportsDone || 0) + 1;
+            }
+            setStatus(t('backupSaved', { path }), 'ok');
+            toast(t('backupSaved', { path }), 'ok');
+        } else {
+            setStatus(t('statusReady'), '');
+        }
     } catch (e) {
-        toast(t('backupErr', { e }), 'err');
+        const msg = String(e.message || e);
+        if (msg.includes('OFFLINE_LIMIT')) { showOfflineWarning(true); toast(t('offlineExportLimit'), 'err'); }
+        else if (msg.includes('DONATION_LIMIT')) { showDonationOverlay('limit'); }
+        else toast(t('backupErr', { e }), 'err');
+    } finally {
+        busy(false);
+    }
+}
+
+async function restore() {
+    const b = backend();
+    if (!b || !state.port) { toast(t('backupFirst'), ''); return; }
+    busy(true);
+    try {
+        const rep = await b.RestoreZip(state.port);
+        if (rep) {
+            if (rep.uploaded > 0 && (monetizationConfig.offlineMode || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked))) {
+                monetizationConfig.importsDone = (monetizationConfig.importsDone || 0) + 1;
+            }
+            const fail = (rep.failed && rep.failed.length) || 0;
+            const msg = fail
+                ? t('restoreDoneFailed', { ok: rep.uploaded, total: rep.total, fail })
+                : t('restoreDone', { ok: rep.uploaded, total: rep.total });
+            setStatus(msg, fail ? 'err' : 'ok');
+            toast(msg, fail ? '' : 'ok');
+            // El pedal cambió: releer la snapshot completa.
+            await refresh();
+        } else {
+            setStatus(t('statusReady'), '');
+        }
+    } catch (e) {
+        const msg = String(e.message || e);
+        if (msg.includes('OFFLINE_LIMIT')) { showOfflineWarning(true); toast(t('offlineImportLimit'), 'err'); }
+        else if (msg.includes('DONATION_LIMIT')) { showDonationOverlay('limit'); }
+        else toast(t('restoreErr', { e }), 'err');
+    } finally {
+        busy(false);
     }
 }
 
@@ -1329,6 +1422,10 @@ function translateProgress(msg) {
     if ((m = msg.match(/^Leyendo slot (\d+)\/(\d+)/))) return t('pReadingSlot', { n: m[1], total: m[2] });
     if (/^Generando/.test(msg)) return t('pGenerating');
     if (/^Enviando setup/.test(msg)) return t('pSendingSetup');
+    if ((m = msg.match(/^Exportando slot (\d+)\/(\d+)/))) return t('pExporting', { n: m[1], total: m[2] });
+    if ((m = msg.match(/^Restaurando slot (\d+)\/(\d+)/))) return t('pRestoringSlot', { n: m[1], total: m[2] });
+    if (/^Restaurando colores/.test(msg)) return t('pRestoringColors');
+    if (/^Restaurando asignaciones/.test(msg)) return t('pRestoringAssign');
     if ((m = msg.match(/^Subiendo al slot (\d+)/))) return t('pUploadingSlot', { n: m[1] });
     if (/^Leyendo slot actualizado/.test(msg)) return t('pReadingUpdated');
     if ((m = msg.match(/^Cargando en (.+?)\.\.\./))) return t('pLoadingInto', { pos: m[1] });
@@ -1367,6 +1464,7 @@ function wireEvents() {
     $('btnRefresh').onclick = refresh;
     $('btnOpen').onclick = () => uploadFlowChooseSlot();
     $('btnBackup').onclick = backup;
+    $('btnRestore').onclick = restore;
     $('btnPoll').onclick = () => togglePolling();
     $('btnHelp').onclick = showHelp;
     $('btnDonate').onclick = openDonate;
@@ -1499,6 +1597,8 @@ function subscribeBackend() {
     const r = rt();
     if (!r) return;
     r.EventsOn('progress', (msg) => setStatus(translateProgress(msg), 'busy'));
+    r.EventsOn('backup-progress', (p) => { if (p) setStatus(t('backupRunning', { done: p.done, total: p.total }), 'busy'); });
+    r.EventsOn('restore-progress', (p) => { if (p) setStatus(t('restoreRunning', { done: p.done, total: p.total }), 'busy'); });
     r.EventsOn('snap-state', onSnapState);   // carga progresiva: esqueleto
     r.EventsOn('snap-slot', fillRow);        // carga progresiva: fila a fila
     r.EventsOn('footswitch', onFootswitch);

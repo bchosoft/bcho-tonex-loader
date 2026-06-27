@@ -1,9 +1,12 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -400,15 +403,109 @@ func (a *App) OpenTXPDialog() ([]string, error) {
 	})
 }
 
-// Backup guarda el contenido JSON dado en un fichero elegido por el usuario.
-// Devuelve la ruta guardada.
-func (a *App) Backup(jsonContent string) (string, error) {
-	def := fmt.Sprintf("tonex-backup-%s.json", time.Now().Format("20060102-150405"))
+// ---- Backup / Restore -----------------------------------------------------
+
+type backupManifestSlot struct {
+	Index int         `json:"index"`
+	Name  string      `json:"name"`
+	File  string      `json:"file"`
+	Color *preset.RGB `json:"color,omitempty"`
+}
+
+type backupManifest struct {
+	App         string               `json:"app"`
+	Version     int                  `json:"version"`
+	CreatedAt   string               `json:"createdAt"`
+	Model       string               `json:"model"`
+	ModelName   string               `json:"modelName"`
+	Count       int                  `json:"count"`
+	Assignments preset.Assignments   `json:"assignments"`
+	ActiveSlot  int                  `json:"activeSlot"`
+	Slots       []backupManifestSlot `json:"slots"`
+}
+
+// BackupZip exporta TODOS los slots del pedal a .txp y los empaqueta, junto con un
+// manifest.json (modelo, asignaciones A/B/Stomp y colores de LED), en un unico
+// .zip restaurable con RestoreZip. Devuelve la ruta guardada ("" si se cancela).
+func (a *App) BackupZip(port string) (string, error) {
+	if err := a.checkExportAllowed(); err != nil {
+		return "", err
+	}
+	var bundle *librarian.BackupBundle
+	err := a.withPedal(func() error {
+		b, e := librarian.BackupAll(port, a.progress, func(done, total int) {
+			wruntime.EventsEmit(a.ctx, "backup-progress", map[string]int{"done": done, "total": total})
+		})
+		bundle = b
+		return e
+	})
+	if err != nil {
+		return "", err
+	}
+	if bundle == nil || len(bundle.Slots) == 0 {
+		return "", fmt.Errorf("no se pudo leer ningun slot del pedal")
+	}
+
+	// Construir el ZIP en memoria.
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	manifest := backupManifest{
+		App:         "BCho TONEX Loader",
+		Version:     1,
+		CreatedAt:   time.Now().Format(time.RFC3339),
+		Model:       bundle.Model,
+		ModelName:   bundle.ModelName,
+		Count:       bundle.Count,
+		Assignments: bundle.Assignments,
+		ActiveSlot:  bundle.ActiveSlot,
+	}
+	width := len(fmt.Sprintf("%d", bundle.Count-1))
+	if width < 2 {
+		width = 2
+	}
+	isOne := bundle.Model != "pedal"
+	for _, s := range bundle.Slots {
+		fname := fmt.Sprintf("presets/%0*d - %s", width, s.Index, safeTXPFilename(s.Name, s.Index))
+		w, e := zw.Create(fname)
+		if e != nil {
+			_ = zw.Close()
+			return "", e
+		}
+		if _, e := w.Write(s.Data); e != nil {
+			_ = zw.Close()
+			return "", e
+		}
+		ms := backupManifestSlot{Index: s.Index, Name: s.Name, File: fname}
+		if isOne && s.Index < len(bundle.Colors) {
+			c := bundle.Colors[s.Index]
+			ms.Color = &c
+		}
+		manifest.Slots = append(manifest.Slots, ms)
+	}
+	mj, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		_ = zw.Close()
+		return "", err
+	}
+	mw, e := zw.Create("manifest.json")
+	if e != nil {
+		_ = zw.Close()
+		return "", e
+	}
+	if _, e := mw.Write(mj); e != nil {
+		_ = zw.Close()
+		return "", e
+	}
+	if e := zw.Close(); e != nil {
+		return "", e
+	}
+
+	def := fmt.Sprintf("tonex-backup-%s-%s.zip", bundle.Model, time.Now().Format("20060102-150405"))
 	path, err := wruntime.SaveFileDialog(a.ctx, wruntime.SaveDialogOptions{
 		Title:           "Guardar backup del pedal",
 		DefaultFilename: def,
 		Filters: []wruntime.FileFilter{
-			{DisplayName: "JSON (*.json)", Pattern: "*.json"},
+			{DisplayName: "Backup ZIP (*.zip)", Pattern: "*.zip"},
 		},
 	})
 	if err != nil {
@@ -417,10 +514,119 @@ func (a *App) Backup(jsonContent string) (string, error) {
 	if path == "" {
 		return "", nil // cancelado
 	}
-	if err := os.WriteFile(path, []byte(jsonContent), 0o644); err != nil {
+	if !strings.EqualFold(filepath.Ext(path), ".zip") {
+		path += ".zip"
+	}
+	if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 		return "", err
 	}
+	a.addExport()
 	return path, nil
+}
+
+// RestoreZip lee un .zip creado con BackupZip y sube cada .txp a su slot,
+// reaplicando asignaciones y colores (Tonex One). Pide confirmacion antes de
+// sobrescribir el pedal. Devuelve el resumen del restore (nil si se cancela).
+func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
+	if err := a.checkImportAllowed(); err != nil {
+		return nil, err
+	}
+	path, err := wruntime.OpenFileDialog(a.ctx, wruntime.OpenDialogOptions{
+		Title: "Selecciona un backup .zip",
+		Filters: []wruntime.FileFilter{
+			{DisplayName: "Backup ZIP (*.zip)", Pattern: "*.zip"},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if path == "" {
+		return nil, nil // cancelado
+	}
+
+	zr, err := zip.OpenReader(path)
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo abrir el zip: %w", err)
+	}
+	defer zr.Close()
+
+	files := make(map[string][]byte, len(zr.File))
+	var manifestRaw []byte
+	for _, f := range zr.File {
+		rc, e := f.Open()
+		if e != nil {
+			return nil, e
+		}
+		data, e := io.ReadAll(rc)
+		rc.Close()
+		if e != nil {
+			return nil, e
+		}
+		if f.Name == "manifest.json" {
+			manifestRaw = data
+		} else {
+			files[f.Name] = data
+		}
+	}
+	if manifestRaw == nil {
+		return nil, fmt.Errorf("el zip no contiene manifest.json (no es un backup valido)")
+	}
+	var manifest backupManifest
+	if err := json.Unmarshal(manifestRaw, &manifest); err != nil {
+		return nil, fmt.Errorf("manifest.json no valido: %w", err)
+	}
+
+	entries := make([]librarian.RestoreEntry, 0, len(manifest.Slots))
+	colors := make([]preset.RGB, manifest.Count)
+	haveColors := false
+	for _, s := range manifest.Slots {
+		data, ok := files[s.File]
+		if !ok {
+			continue
+		}
+		entries = append(entries, librarian.RestoreEntry{Index: s.Index, Data: data})
+		if s.Color != nil && s.Index >= 0 && s.Index < len(colors) {
+			colors[s.Index] = *s.Color
+			haveColors = true
+		}
+	}
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("el backup no contiene presets")
+	}
+
+	// Confirmacion: el restore sobrescribe el contenido del pedal.
+	confirm, _ := wruntime.MessageDialog(a.ctx, wruntime.MessageDialogOptions{
+		Type:          wruntime.QuestionDialog,
+		Title:         "Restaurar backup",
+		Message:       fmt.Sprintf("Se van a sobrescribir %d presets del pedal con el backup (%s).\n\nEsta accion no se puede deshacer. ¿Continuar?", len(entries), manifest.ModelName),
+		Buttons:       []string{"Restaurar", "Cancelar"},
+		DefaultButton: "Cancelar",
+		CancelButton:  "Cancelar",
+	})
+	if confirm != "Restaurar" {
+		return nil, nil // cancelado por el usuario
+	}
+
+	var colorsArg []preset.RGB
+	if haveColors && manifest.Model != "pedal" {
+		colorsArg = colors
+	}
+
+	var rep *librarian.RestoreReport
+	err = a.withPedal(func() error {
+		r, e := librarian.RestoreAll(port, entries, manifest.Assignments, colorsArg, a.progress, func(done, total int) {
+			wruntime.EventsEmit(a.ctx, "restore-progress", map[string]int{"done": done, "total": total})
+		})
+		rep = r
+		return e
+	})
+	if err != nil {
+		return nil, err
+	}
+	if rep != nil && rep.Uploaded > 0 {
+		a.addImport()
+	}
+	return rep, nil
 }
 
 // ---- Polling del footswitch ----------------------------------------------

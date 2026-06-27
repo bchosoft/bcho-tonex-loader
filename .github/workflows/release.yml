@@ -51,20 +51,20 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           wails build -platform ${{ matrix.platform }}
-          copy build\bin\go-tonex-loader.exe build\bin\${{ matrix.artifact }}
+          copy build\bin\BCho-TONEX-Loader.exe build\bin\${{ matrix.artifact }}
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: |
           wails build -platform ${{ matrix.platform }} -tags webkit2_41
-          cp build/bin/go-tonex-loader build/bin/${{ matrix.artifact }}
+          cp build/bin/BCho-TONEX-Loader build/bin/${{ matrix.artifact }}
 
       - name: Build (macOS)
         if: runner.os == 'macOS'
         run: |
           wails build -platform ${{ matrix.platform }}
           cd build/bin
-          ditto -c -k --sequesterRsrc --keepParent go-tonex-loader.app ${{ matrix.artifact }}
+          ditto -c -k --sequesterRsrc --keepParent BCho-TONEX-Loader.app ${{ matrix.artifact }}
 
       - uses: actions/upload-artifact@v4
         with:

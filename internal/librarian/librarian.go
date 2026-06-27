@@ -519,3 +519,180 @@ func SetPresetColor(presetIndex int, rgb preset.RGB, port string) ([]byte, error
 	time.Sleep(250 * time.Millisecond)
 	return dev.RequestStateWithRetry(2)
 }
+
+// ---- Backup / Restore completos -------------------------------------------
+
+// BackupSlot es un slot exportado a .txp para incluir en un backup.
+type BackupSlot struct {
+	Index int    `json:"index"`
+	Name  string `json:"name"`
+	Data  []byte `json:"-"`
+}
+
+// BackupBundle agrupa todo lo necesario para reconstruir el pedal: los .txp de
+// cada slot mas los metadatos de estado (asignaciones A/B/Stomp, colores de LED).
+type BackupBundle struct {
+	Model       string             `json:"model"`
+	ModelName   string             `json:"modelName"`
+	Count       int                `json:"count"`
+	Assignments preset.Assignments `json:"assignments"`
+	ActiveSlot  int                `json:"activeSlot"`
+	Colors      []preset.RGB       `json:"colors"`
+	Slots       []BackupSlot       `json:"slots"`
+}
+
+// BackupAll abre el pedal UNA sola vez, lee su estado y exporta TODOS los slots a
+// .txp fieles al contenido actual. onProgress (opcional) recibe (hechos, total).
+func BackupAll(port string, progress ProgressFunc, onProgress func(done, total int)) (*BackupBundle, error) {
+	port, err := resolvePort(port)
+	if err != nil {
+		return nil, err
+	}
+	dev, err := device.Open(port, device.ModelUnknown, 0)
+	if err != nil {
+		return nil, err
+	}
+	defer dev.Close()
+
+	report(progress, "Conectando con el pedal...")
+	if _, err := dev.HelloWithRetry(2); err != nil {
+		return nil, err
+	}
+
+	count := dev.Model().SlotCount()
+	bundle := &BackupBundle{
+		Model:     dev.Model().Key(),
+		ModelName: dev.Model().DisplayName(),
+		Count:     count,
+	}
+	if statePayload, err := dev.RequestStateWithRetry(2); err == nil {
+		bundle.Assignments = preset.ParseStateAssignments(statePayload)
+		bundle.ActiveSlot = preset.ParseActiveSlot(statePayload)
+		bundle.Colors, _ = preset.ParseStateColors(statePayload)
+	}
+
+	for idx := 0; idx < count; idx++ {
+		report(progress, fmt.Sprintf("Exportando slot %d/%d...", idx+1, count))
+		payload, err := readPresetPayloadOpen(dev, idx, true)
+		if err != nil {
+			return nil, fmt.Errorf("slot %d: %w", idx, err)
+		}
+		exported, err := upload.ExportFromPayloadSuffixed(payload, "")
+		if err != nil {
+			return nil, fmt.Errorf("slot %d: %w", idx, err)
+		}
+		name := ""
+		if exported.Info != nil {
+			name = exported.Info.Name
+		}
+		bundle.Slots = append(bundle.Slots, BackupSlot{Index: idx, Name: name, Data: exported.Data})
+		if onProgress != nil {
+			onProgress(idx+1, count)
+		}
+	}
+	return bundle, nil
+}
+
+// RestoreEntry es un .txp a subir a un slot concreto durante un restore.
+type RestoreEntry struct {
+	Index int
+	Data  []byte
+}
+
+// RestoreReport resume el resultado de un restore.
+type RestoreReport struct {
+	Total    int   `json:"total"`
+	Uploaded int   `json:"uploaded"`
+	Failed   []int `json:"failed"`
+}
+
+// RestoreAll abre el pedal UNA sola vez y sube cada .txp a su slot. En el Tonex
+// One reaplica ademas los colores de LED y las asignaciones A/B/Stomp (el Pedal no
+// tiene ni colores ni asignaciones). Las entradas con un slot fuera de rango o que
+// fallan al subir se anotan en Failed; el resto continua.
+func RestoreAll(port string, entries []RestoreEntry, assignments preset.Assignments, colors []preset.RGB, progress ProgressFunc, onProgress func(done, total int)) (*RestoreReport, error) {
+	port, err := resolvePort(port)
+	if err != nil {
+		return nil, err
+	}
+	dev, err := device.Open(port, device.ModelUnknown, 0)
+	if err != nil {
+		return nil, err
+	}
+	defer dev.Close()
+
+	report(progress, "Conectando con el pedal...")
+	if _, err := dev.HelloWithRetry(2); err != nil {
+		return nil, err
+	}
+
+	model := dev.Model()
+	count := model.SlotCount()
+	rep := &RestoreReport{Total: len(entries)}
+	var setupFrames [][]byte
+	if model != device.ModelPedal {
+		setupFrames = assets.SetupFrames()
+	}
+
+	total := len(entries)
+	for i, e := range entries {
+		if onProgress != nil {
+			onProgress(i, total)
+		}
+		if e.Index < 0 || e.Index >= count {
+			rep.Failed = append(rep.Failed, e.Index)
+			continue
+		}
+		report(progress, fmt.Sprintf("Restaurando slot %d/%d...", i+1, total))
+		var payload []byte
+		if model == device.ModelPedal {
+			payload, err = upload.BuildBChoPedal(e.Data, assets.TemplatePedal, e.Index)
+		} else {
+			payload, err = upload.BuildBCho(e.Data, assets.Template, e.Index)
+		}
+		if err != nil {
+			rep.Failed = append(rep.Failed, e.Index)
+			continue
+		}
+		if ack := uploadPayloadOpen(dev, "", e.Index, payload, setupFrames, progress); ack != nil {
+			rep.Uploaded++
+		} else {
+			rep.Failed = append(rep.Failed, e.Index)
+		}
+	}
+
+	// Extras solo en el Tonex One: colores de LED y asignaciones A/B/Stomp.
+	if model != device.ModelPedal {
+		if len(colors) > 0 {
+			report(progress, "Restaurando colores...")
+			if statePayload, err := dev.RequestStateWithRetry(2); err == nil {
+				if state, err := preset.StateDataFromPayload(statePayload); err == nil {
+					changed := false
+					for idx := 0; idx < len(colors) && idx < count; idx++ {
+						if ns, err := preset.ReplaceStateColor(state, idx, colors[idx]); err == nil {
+							state = ns
+							changed = true
+						}
+					}
+					if changed {
+						_, _ = sendStateData(dev, state)
+					}
+				}
+			}
+		}
+		report(progress, "Restaurando asignaciones A/B/Stomp...")
+		applyAssignment := func(name string, idx int) {
+			if idx >= 0 && idx <= 19 {
+				_, _ = setSlotAssignmentOpen(dev, name, idx, false)
+			}
+		}
+		applyAssignment("A", assignments.A)
+		applyAssignment("B", assignments.B)
+		applyAssignment("C", assignments.C)
+	}
+
+	if onProgress != nil {
+		onProgress(total, total)
+	}
+	return rep, nil
+}
