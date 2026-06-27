@@ -10,7 +10,7 @@ import './style.css';
  * ========================================================================= */
 const I18N = {
     es: {
-        subtitle: 'IK Multimedia Tonex One · USB',
+        subtitle: 'Tonex One & Tonex Pedal',
         btnRefresh: '⟳ Refrescar',
         btnOpen: '📂 Abrir .txp',
         btnBackup: '💾 Backup',
@@ -87,7 +87,7 @@ const I18N = {
         helpTitle: 'Ayuda — Tonex Loader',
     },
     en: {
-        subtitle: 'IK Multimedia Tonex One · USB',
+        subtitle: 'Tonex One & Tonex Pedal',
         btnRefresh: '⟳ Refresh',
         btnOpen: '📂 Open .txp',
         btnBackup: '💾 Backup',
@@ -191,14 +191,14 @@ const FLAG_EN = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Eng
 const HELP_HTML = {
     es: `
     <p class="help-lead">Tonex Loader es una utilidad independiente para cargar presets <b>.txp</b> en un
-    <b>IK Multimedia Tonex One</b> por USB, sin abrir el editor oficial TONEX.</p>
+    <b>IK Multimedia TONEX One</b> o <b>TONEX Pedal</b> por USB, sin abrir el editor oficial TONEX.</p>
     <div class="help-warn">⚠️ <b>No sustituye al TONEX Editor.</b> No crea, edita, captura ni entrena
     modelos de amplificador, y no gestiona la librería en la nube. Su único trabajo es <b>pasar al pedal
     cualquier archivo .txp</b> que ya tengas (por ejemplo, uno que te pase un amigo).</div>
 
     <div class="help-section">✅ Qué SÍ puedes hacer</div>
     <ul class="help-list">
-      <li><b>Leer</b> los 20 slots del Tonex One en vivo (nombre, character, amp, cab, efectos).</li>
+      <li><b>Leer</b> los slots del TONEX One o TONEX Pedal en vivo (nombre, character, amp, cab, efectos).</li>
       <li><b>Subir</b> cualquier <b>.txp</b> a cualquier slot: arrastrándolo a la ventana, con <b>Abrir .txp</b>,
       o con clic derecho en un slot → <i>Subir aquí</i>. Si sueltas varios, se cargan en slots consecutivos.</li>
       <li><b>Asignar</b> un slot al footswitch <b>A</b>, <b>B</b> o <b>Stomp</b> (clic derecho → <i>Cargar</i>,
@@ -217,20 +217,20 @@ const HELP_HTML = {
 
     <div class="help-section">▶️ Cómo subir un preset</div>
     <ol class="help-list">
-      <li>Conecta el Tonex One por USB (aparece solo; si hace falta, elige el puerto COM arriba).</li>
+      <li>Conecta el TONEX One o TONEX Pedal por USB (aparece solo; si hace falta, elige el puerto COM arriba).</li>
       <li>Arrastra un <b>.txp</b> a la ventana — o pulsa <b>Abrir .txp</b> — y elige el slot de destino.</li>
       <li>Espera el OK. Si quieres oírlo, carga ese slot en <b>A/B/Stomp</b> y písalo.</li>
     </ol>`,
     en: `
     <p class="help-lead">Tonex Loader is an independent utility to load <b>.txp</b> presets onto an
-    <b>IK Multimedia Tonex One</b> over USB, without opening the official TONEX editor.</p>
+    <b>IK Multimedia TONEX One</b> or <b>TONEX Pedal</b> over USB, without opening the official TONEX editor.</p>
     <div class="help-warn">⚠️ <b>It is not a replacement for the TONEX Editor.</b> It does not create, edit,
     capture or train amp models, and it does not manage the cloud library. Its only job is to <b>push any
     .txp file</b> you already have onto your pedal (for example, one a friend sends you).</div>
 
     <div class="help-section">✅ What you CAN do</div>
     <ul class="help-list">
-      <li><b>Read</b> the 20 slots of your Tonex One live (name, character, amp, cab, effects).</li>
+      <li><b>Read</b> the slots of your TONEX One or TONEX Pedal live (name, character, amp, cab, effects).</li>
       <li><b>Upload</b> any <b>.txp</b> to any slot: drag it onto the window, use <b>Open .txp</b>,
       or right-click a slot → <i>Upload here</i>. Drop several and they fill consecutive slots.</li>
       <li><b>Assign</b> a slot to footswitch <b>A</b>, <b>B</b> or <b>Stomp</b> (right-click → <i>Load</i>,
@@ -249,7 +249,7 @@ const HELP_HTML = {
 
     <div class="help-section">▶️ How to upload a preset</div>
     <ol class="help-list">
-      <li>Connect the Tonex One over USB (it shows up automatically; pick the COM port above if needed).</li>
+      <li>Connect the TONEX One or TONEX Pedal over USB (it shows up automatically; pick the COM port above if needed).</li>
       <li>Drag a <b>.txp</b> onto the window — or click <b>Open .txp</b> — and choose the target slot.</li>
       <li>Wait for the OK. To hear it, load that slot into <b>A/B/Stomp</b> and step on it.</li>
     </ol>`,
@@ -690,9 +690,8 @@ function applyModelUI() {
     if (chip) chip.classList.toggle('hidden', pedal);
     const sub = $('subtitle');
     if (sub) {
-        const name = (state.snapshot && state.snapshot.modelName)
-            || (pedal ? 'Tonex Pedal' : 'Tonex One');
-        sub.textContent = `IK Multimedia ${name} · USB`;
+        const name = state.snapshot && state.snapshot.modelName;
+        sub.textContent = name ? `IK Multimedia ${name} · USB` : t('subtitle');
     }
 }
 
@@ -816,6 +815,7 @@ async function loadPorts() {
     const b = backend();
     if (!b) return;
     try {
+        const previousPort = state.port;
         let ports = await b.ListPorts();
         const sel = $('portSelect');
         sel.innerHTML = '';
@@ -841,7 +841,10 @@ async function loadPorts() {
             opt.textContent = `${p.name} · ${label}`;
             sel.appendChild(opt);
         });
-        state.port = ports[0].name;
+        const previousStillAvailable = ports.find((p) => p.name === previousPort);
+        state.port = detected
+            ? ports[0].name
+            : (previousStillAvailable ? previousStillAvailable.name : ports[0].name);
         state.autoDetected = !!detected;
         sel.value = state.port;
         setStatus(detected ? t('pedalDetected', { port: state.port }) : t('pickPortHint'), detected ? 'ok' : '');
@@ -859,6 +862,9 @@ async function refresh() {
     busy(true);
     setStatus(t('reading'), 'busy');
     try {
+        await loadPorts();
+        if (!state.port) return;
+        setStatus(t('reading'), 'busy');
         const snap = await b.Snapshot(state.port);
         state.snapshot = snap;
         applyModelUI();

@@ -329,7 +329,7 @@ func (a *App) checkImportAllowed() error {
 	if !cfg.Restrictions {
 		return nil
 	}
-	if checkUnlocked() {
+	if !cfg.OfflineMode && checkUnlocked() {
 		return nil
 	}
 	if !cfg.OfflineMode && a.IsUnlocked() {
@@ -355,7 +355,7 @@ func (a *App) addImport() {
 	if !cfg.Restrictions {
 		return
 	}
-	if checkUnlocked() {
+	if !cfg.OfflineMode && checkUnlocked() {
 		return
 	}
 	if !cfg.OfflineMode && a.IsUnlocked() {
@@ -371,7 +371,7 @@ func (a *App) checkExportAllowed() error {
 	if !cfg.Restrictions {
 		return nil
 	}
-	if checkUnlocked() {
+	if !cfg.OfflineMode && checkUnlocked() {
 		return nil
 	}
 	if !cfg.OfflineMode && a.IsUnlocked() {
@@ -397,7 +397,7 @@ func (a *App) addExport() {
 	if !cfg.Restrictions {
 		return
 	}
-	if checkUnlocked() {
+	if !cfg.OfflineMode && checkUnlocked() {
 		return
 	}
 	if !cfg.OfflineMode && a.IsUnlocked() {

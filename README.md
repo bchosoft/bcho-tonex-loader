@@ -1,7 +1,7 @@
 # BCho TONEX Loader
 
 <p align="center">
-  <img src="docs/banner.png" alt="BCho TONEX Loader" width="420">
+  <img src="docs/banner_es.png" alt="BCho TONEX Loader" width="640">
 </p>
 
 <p align="center">
@@ -123,6 +123,10 @@ Este proyecto no está afiliado ni respaldado por IK Multimedia. "TONEX" es marc
 ---
 
 ## English
+
+<p align="center">
+  <img src="docs/banner_en.png" alt="BCho TONEX Loader" width="640">
+</p>
 
 **Open-source** tool (Go + [Wails](https://wails.io)) to upload `.txp` presets to an **IK Multimedia TONEX One** or **TONEX Pedal** over USB. It **auto-detects** which pedal is connected and adapts the UI to each one.
 
