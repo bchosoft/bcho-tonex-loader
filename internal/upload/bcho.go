@@ -8,16 +8,17 @@ import (
 )
 
 const (
-	txpPresetGUIDOff = 0x09
-	txpUserGenOff    = 0x36
-	txpIKGenOff      = 0x3a
-	bchoSuffix       = " BCho"
+	txpPresetGUIDOff   = 0x09
+	txpUserGenOff      = 0x36
+	txpIKGenOff        = 0x3a
+	txpModelVariantOff = 0x04
+	bchoSuffix         = " BCho"
 )
 
 // applyBChoConversionToPlaintext replica la conversion de TXP LiBeRaToR:
-// marca el Tone Model como usuario, fuerza una variante de los pesos cuyo MD5
-// acaba en bc00, usa ese MD5 como GUID del modelo, genera un GUID de preset
-// derivado y anade el sufijo BCho al nombre del modelo.
+// marca el Tone Model como usuario, fuerza una variante estable cuyo MD5 acaba
+// en bc00, usa ese MD5 como GUID del modelo, genera un GUID de preset derivado
+// y anade el sufijo BCho al nombre del modelo.
 func applyBChoConversionToPlaintext(pt []byte) error {
 	if err := checkRange(pt, txpPresetGUIDOff, 16, "GUID preset txp"); err != nil {
 		return err
@@ -45,10 +46,10 @@ func applyBChoConversionToPlaintext(pt []byte) error {
 	var modelMD5 [16]byte
 	found := false
 	for i := uint32(0); i < 1<<24; i++ {
-		modelBytes[modelLen-4] = byte(i)
-		modelBytes[modelLen-3] = byte(i >> 8)
-		modelBytes[modelLen-2] = byte(i >> 16)
-		modelBytes[modelLen-1] = byte(i >> 24)
+		modelBytes[txpModelVariantOff+0] = byte(i)
+		modelBytes[txpModelVariantOff+1] = byte(i >> 8)
+		modelBytes[txpModelVariantOff+2] = byte(i >> 16)
+		modelBytes[txpModelVariantOff+3] = byte(i >> 24)
 
 		modelMD5 = md5.Sum(modelBytes)
 		if modelMD5[14] == 0xBC && modelMD5[15] == 0x00 {

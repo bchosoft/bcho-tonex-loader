@@ -16,11 +16,12 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:     "Tonex Loader",
-		Width:     1180,
-		Height:    820,
-		MinWidth:  960,
-		MinHeight: 640,
+		Title:            "Tonex Loader",
+		Width:            1180,
+		Height:           820,
+		MinWidth:         960,
+		MinHeight:        640,
+		WindowStartState: options.Maximised,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

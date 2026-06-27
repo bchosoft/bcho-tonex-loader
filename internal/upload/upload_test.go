@@ -145,9 +145,15 @@ func TestExportSuffixBCho(t *testing.T) {
 	if got := readStrTag(ptBcho, 0x6d98, 33); got != "UK100" {
 		t.Errorf("nombre preset no debia cambiar: %q", got)
 	}
-	// Conversion LiBeRaToR: el modelo cambia solo para forzar MD5/GUID BCho.
+	// Conversion BCho: el modelo cambia solo en el campo de variante para forzar MD5/GUID BCho.
 	if bytes.Equal(ptPlain[txpModelOff:txpModelOff+modelLen], ptBcho[txpModelOff:txpModelOff+modelLen]) {
 		t.Errorf("BCho debe crear una variante del modelo")
+	}
+	modelPlain := ptPlain[txpModelOff : txpModelOff+modelLen]
+	modelBcho := ptBcho[txpModelOff : txpModelOff+modelLen]
+	if !bytes.Equal(modelPlain[:txpModelVariantOff], modelBcho[:txpModelVariantOff]) ||
+		!bytes.Equal(modelPlain[txpModelVariantOff+4:], modelBcho[txpModelVariantOff+4:]) {
+		t.Errorf("BCho toco bytes del modelo fuera del campo de variante")
 	}
 	modelHash := md5.Sum(ptBcho[txpModelOff : txpModelOff+modelLen])
 	if !bytes.Equal(mc.GUID, modelHash[:]) {

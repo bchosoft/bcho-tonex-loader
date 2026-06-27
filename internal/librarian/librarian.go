@@ -571,6 +571,9 @@ func BackupAll(port string, progress ProgressFunc, onProgress func(done, total i
 		bundle.Colors, _ = preset.ParseStateColors(statePayload)
 	}
 
+	if onProgress != nil {
+		onProgress(0, count) // muestra el modal de progreso de inmediato
+	}
 	for idx := 0; idx < count; idx++ {
 		report(progress, fmt.Sprintf("Exportando slot %d/%d...", idx+1, count))
 		payload, err := readPresetPayloadOpen(dev, idx, true)
@@ -610,7 +613,7 @@ type RestoreReport struct {
 // One reaplica ademas los colores de LED y las asignaciones A/B/Stomp (el Pedal no
 // tiene ni colores ni asignaciones). Las entradas con un slot fuera de rango o que
 // fallan al subir se anotan en Failed; el resto continua.
-func RestoreAll(port string, entries []RestoreEntry, assignments preset.Assignments, colors []preset.RGB, progress ProgressFunc, onProgress func(done, total int)) (*RestoreReport, error) {
+func RestoreAll(port string, expectedModel string, entries []RestoreEntry, assignments preset.Assignments, colors []preset.RGB, progress ProgressFunc, onProgress func(done, total int)) (*RestoreReport, error) {
 	port, err := resolvePort(port)
 	if err != nil {
 		return nil, err
@@ -627,6 +630,10 @@ func RestoreAll(port string, entries []RestoreEntry, assignments preset.Assignme
 	}
 
 	model := dev.Model()
+	if expectedModel != "" && model.Key() != expectedModel {
+		return nil, fmt.Errorf("el backup es de un Tonex %s pero el pedal conectado es un Tonex %s", expectedModel, model.Key())
+	}
+
 	count := model.SlotCount()
 	rep := &RestoreReport{Total: len(entries)}
 	var setupFrames [][]byte
@@ -646,9 +653,9 @@ func RestoreAll(port string, entries []RestoreEntry, assignments preset.Assignme
 		report(progress, fmt.Sprintf("Restaurando slot %d/%d...", i+1, total))
 		var payload []byte
 		if model == device.ModelPedal {
-			payload, err = upload.BuildBChoPedal(e.Data, assets.TemplatePedal, e.Index)
+			payload, err = upload.BuildPedal(e.Data, assets.TemplatePedal, e.Index)
 		} else {
-			payload, err = upload.BuildBCho(e.Data, assets.Template, e.Index)
+			payload, err = upload.Build(e.Data, assets.Template, e.Index)
 		}
 		if err != nil {
 			rep.Failed = append(rep.Failed, e.Index)

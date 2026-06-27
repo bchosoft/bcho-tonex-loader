@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -32,14 +33,15 @@ import (
 type App struct {
 	ctx context.Context
 
-	mu                sync.Mutex
-	configMu          sync.Mutex
-	pollCancel        context.CancelFunc
-	pollDone          chan struct{}
-	pollPort          string
-	pollWanted        bool
-	uploadMeta        map[int]*upload.Metadata
-	hideBChoOnDisplay map[int]bool
+	mu                 sync.Mutex // serializa el acceso al pedal (lecturas/escrituras + poller)
+	licMu              sync.Mutex // protege el estado de monetización/licencia (independiente del pedal)
+	configMu           sync.Mutex
+	pollCancel         context.CancelFunc
+	pollDone           chan struct{}
+	pollPort           string
+	pollWanted         bool
+	uploadMeta         map[int]*upload.Metadata
+	hideBChoOnDisplay  map[int]bool
 	unlocked           bool
 	monetizationLoaded bool
 	monetizationConfig MonetizationConfig
@@ -367,6 +369,89 @@ func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) 
 	return path, nil
 }
 
+// ExportTXPMultiResult resume el resultado de exportar varios slots a una carpeta.
+type ExportTXPMultiResult struct {
+	Dir      string `json:"dir"`
+	Exported int    `json:"exported"`
+	Total    int    `json:"total"`
+	Failed   []int  `json:"failed,omitempty"`
+}
+
+// ExportTXPMulti exporta varios slots a .txp en una carpeta elegida por el usuario.
+// Pide la carpeta UNA sola vez (no un dialogo "guardar como" por slot) y escribe un
+// fichero por slot, prefijado con su numero de slot para garantizar orden y unicidad
+// aunque dos presets compartan nombre. Si bcho=true, firma los nombres de modelo.
+// Cuenta como UNA sola exportacion de cara a los limites (igual que el Backup).
+func (a *App) ExportTXPMulti(slots []int, port string, bcho bool) (*ExportTXPMultiResult, error) {
+	if err := a.checkExportAllowed(); err != nil {
+		return nil, err
+	}
+	max := slotCountFor(port)
+	clean := make([]int, 0, len(slots))
+	seen := make(map[int]bool, len(slots))
+	for _, s := range slots {
+		if s < 0 || s >= max || seen[s] {
+			continue
+		}
+		seen[s] = true
+		clean = append(clean, s)
+	}
+	if len(clean) == 0 {
+		return nil, fmt.Errorf("no hay slots validos seleccionados")
+	}
+	sort.Ints(clean)
+
+	dir, err := wruntime.OpenDirectoryDialog(a.ctx, wruntime.OpenDialogOptions{
+		Title: "Elige la carpeta donde exportar los .txp",
+	})
+	if err != nil {
+		return nil, err
+	}
+	if dir == "" {
+		return nil, nil // cancelado
+	}
+
+	suffix := ""
+	if bcho {
+		suffix = " BCho"
+	}
+	width := len(fmt.Sprintf("%d", max-1))
+	if width < 2 {
+		width = 2
+	}
+
+	res := &ExportTXPMultiResult{Dir: dir, Total: len(clean)}
+	err = a.withPedal(func() error {
+		for i, slot := range clean {
+			wruntime.EventsEmit(a.ctx, "export-progress", map[string]int{"done": i, "total": len(clean)})
+			exported, e := librarian.ExportPresetTXP(slot, port, a.progress, suffix, a.uploadMeta[slot])
+			if e != nil {
+				res.Failed = append(res.Failed, slot)
+				continue
+			}
+			name := fmt.Sprintf("slot-%02d", slot+1)
+			if exported.Info != nil && strings.TrimSpace(exported.Info.Name) != "" {
+				name = exported.Info.Name
+			}
+			fname := fmt.Sprintf("%0*d - %s", width, slot, safeTXPFilename(name, slot))
+			if e := os.WriteFile(filepath.Join(dir, fname), exported.Data, 0o644); e != nil {
+				res.Failed = append(res.Failed, slot)
+				continue
+			}
+			res.Exported++
+		}
+		wruntime.EventsEmit(a.ctx, "export-progress", map[string]int{"done": len(clean), "total": len(clean)})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if res.Exported > 0 {
+		a.addExport()
+	}
+	return res, nil
+}
+
 // SetAssignment carga un preset en A, B o Stomp.
 func (a *App) SetAssignment(slotName string, presetIndex int, port string) error {
 	return a.withPedal(func() error {
@@ -600,10 +685,10 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 		Title:         "Restaurar backup",
 		Message:       fmt.Sprintf("Se van a sobrescribir %d presets del pedal con el backup (%s).\n\nEsta accion no se puede deshacer. ¿Continuar?", len(entries), manifest.ModelName),
 		Buttons:       []string{"Restaurar", "Cancelar"},
-		DefaultButton: "Cancelar",
+		DefaultButton: "No",
 		CancelButton:  "Cancelar",
 	})
-	if confirm != "Restaurar" {
+	if confirm != "Restaurar" && confirm != "Yes" {
 		return nil, nil // cancelado por el usuario
 	}
 
@@ -614,7 +699,7 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 
 	var rep *librarian.RestoreReport
 	err = a.withPedal(func() error {
-		r, e := librarian.RestoreAll(port, entries, manifest.Assignments, colorsArg, a.progress, func(done, total int) {
+		r, e := librarian.RestoreAll(port, manifest.Model, entries, manifest.Assignments, colorsArg, a.progress, func(done, total int) {
 			wruntime.EventsEmit(a.ctx, "restore-progress", map[string]int{"done": done, "total": total})
 		})
 		rep = r

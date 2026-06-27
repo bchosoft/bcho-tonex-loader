@@ -66,6 +66,15 @@
 </div>
 <div id="toast" class="toast hidden"></div>
 
+<!-- Modal de progreso de carga de presets (capa por debajo del overlay de donación) -->
+<div id="loadProgress" class="load-progress hidden">
+    <div class="load-progress-card">
+        <div id="loadProgressTitle" class="load-progress-title">Cargando presets…</div>
+        <div class="load-progress-count"><span id="loadProgressDone">0</span> / <span id="loadProgressTotal">0</span></div>
+        <div class="load-progress-bar"><div id="loadProgressFill" class="load-progress-fill"></div></div>
+    </div>
+</div>
+
 <!-- Donation Overlay -->
 <div id="donationOverlay" class="donation-overlay">
     <div class="donation-card">
@@ -77,7 +86,10 @@
             <p>🇬🇧 The tools used to build this app <b>aren't free</b>. If you find it useful, please consider donating. Without a donation, each session allows <b>3 imports</b> and <b>3 exports</b>. Donating removes this screen and <b>all limits</b>, forever, on this computer.</p>
         </div>
         <div class="donation-token-box">
-            <span class="donation-token-label">Pega este código en el mensaje de tu donación · Paste this code in your donation message:</span>
+            <span class="donation-token-label donation-token-label-important">
+                <span class="donation-token-label-es">IMPORTANTE: Pega este código en el mensaje de tu donación</span>
+                <span class="donation-token-label-en">IMPORTANT: Paste this code in your donation message</span>
+            </span>
             <div class="donation-token-row">
                 <code id="donationToken">—</code>
                 <button id="btnCopyToken" class="btn-copy" title="Copiar / Copy">📋</button>
@@ -101,6 +113,17 @@
                 <button id="donationApply" class="btn">Aplicar · Apply</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Recordatorio periódico de donación (solo no donantes, con el switch activo) -->
+<div id="reminderOverlay" class="reminder-overlay">
+    <div class="reminder-card">
+        <div class="reminder-coffee">☕</div>
+        <div id="reminderText" class="reminder-text"></div>
+        <div id="reminderCountdownText" class="reminder-countdown"></div>
+        <div id="reminderCloseHint" class="reminder-close-hint"></div>
+        <button id="reminderClose" class="reminder-close-btn" disabled aria-label="Cerrar">×</button>
     </div>
 </div>
 

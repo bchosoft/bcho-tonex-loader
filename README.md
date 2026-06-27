@@ -218,7 +218,7 @@ The binary will be in `build/bin/`.
 
 ### Support the project
 
-If you find it useful, you can buy me a coffee: **[ko-fi.com/bchosoft](https://ko-fi.com/bchosoft)** ☕
+If you find it useful, support the project on Ko-fi: **[ko-fi.com/bchosoft](https://ko-fi.com/bchosoft)**
 
 ### License
 

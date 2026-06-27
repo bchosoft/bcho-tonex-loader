@@ -16,7 +16,7 @@ const I18N = {
         btnBackup: '💾 Backup',
         btnHelp: '❔ Ayuda',
         btnDonate: '☕ Donar',
-        donateTitle: 'Invítame a un café y apoya el proyecto',
+        donateTitle: 'Apoya el proyecto en Ko-fi',
         portTitle: 'Puerto COM del pedal',
         pollTitle: 'Seguir el footswitch en vivo',
         thSlot: 'Slot', thName: 'Nombre', thCharacter: 'Carácter', thTone: 'Modelo',
@@ -28,6 +28,7 @@ const I18N = {
         pickPortHint: 'No se detectó por USB. Elige el puerto COM del pedal y pulsa Refrescar.',
         errPorts: 'Error listando puertos: {e}',
         reading: 'Leyendo el pedal…',
+        reloadProgressTitle: 'Recargando…',
         readDone: 'Leídos {n} slots desde {port}.',
         readErr: 'No se pudo leer el pedal: {e}',
         genericErr: 'Error: {e}',
@@ -55,10 +56,20 @@ const I18N = {
         colorErr: 'No se pudo cambiar el color: {e}',
         dlgErr: 'Error abriendo diálogo: {e}',
         uploading: 'Subiendo {file} al slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importando presets…',
         noAck: 'Sin ACK al subir {file} (puede haberse aplicado).',
         uploadFileErr: 'Error subiendo {file}: {e}',
         uploadDone: 'Subida completada: {ok}/{total}.',
         exporting: 'Exportando slot {n} a .txp...',
+        exportProgressTitle: 'Exportando preset…',
+        exportMultiProgressTitle: 'Exportando presets…',
+        exportingMulti: 'Exportando {total} presets…',
+        exportRunning: 'Exportando… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp exportados a {dir}',
+        exportMultiDoneFailed: 'Exportados {ok}/{total} .txp ({fail} con error).',
+        ctxSelCount: '{n} slots seleccionados',
+        ctxExportMulti: 'Exportar {n} .txp',
+        ctxExportMultiBcho: 'Exportar {n} .txp con BCho',
         exportSaved: '.txp exportado: {path}',
         exportErr: 'No se pudo exportar .txp: {e}',
         btnBackupTitle: 'Backup completo del pedal a un .zip restaurable',
@@ -66,9 +77,11 @@ const I18N = {
         btnRestoreTitle: 'Restaurar un backup .zip al pedal',
         backupFirst: 'Conecta el pedal primero.',
         backupRunning: 'Creando backup… {done}/{total} slots',
+        backupProgressTitle: 'Creando backup…',
         backupSaved: 'Backup guardado: {path}',
         backupErr: 'Error guardando backup: {e}',
         restoreRunning: 'Restaurando… {done}/{total}',
+        restoreProgressTitle: 'Restaurando backup…',
         restoreDone: 'Restauración completada: {ok}/{total} slots.',
         restoreDoneFailed: 'Restauración: {ok}/{total} slots ({fail} con error).',
         restoreErr: 'Error restaurando: {e}',
@@ -84,6 +97,10 @@ const I18N = {
         offlineWarning: 'No se puede conectar con el servidor de control. Modo sin conexión: sin pantalla de donación y con límite de 1 importación y 1 exportación por sesión.',
         offlineImportLimit: 'Modo sin conexión: límite de 1 importación por sesión.',
         offlineExportLimit: 'Modo sin conexión: límite de 1 exportación por sesión.',
+        reminderMsg: 'Recuerda que por una contribución mínima de 2 euros puedes tener la versión completa. ;-)',
+        reminderCloseIn: 'Cerrar en {s} s',
+        reminderCloseBtn: 'Cerrar',
+        reminderCanClose: 'Ya puedes cerrar esta ventana',
         // progreso (traducción de los mensajes del backend)
         pConnecting: 'Conectando con el pedal…',
         pReadingSlot: 'Leyendo slot {n}/{total}…',
@@ -105,7 +122,7 @@ const I18N = {
         btnBackup: '💾 Backup',
         btnHelp: '❔ Help',
         btnDonate: '☕ Donate',
-        donateTitle: 'Buy me a coffee and support the project',
+        donateTitle: 'Support the project on Ko-fi',
         portTitle: 'Pedal COM port',
         pollTitle: 'Follow the footswitch live',
         thSlot: 'Slot', thName: 'Name', thCharacter: 'Character', thTone: 'Tone Model',
@@ -117,6 +134,7 @@ const I18N = {
         pickPortHint: 'Not detected over USB. Pick the pedal’s COM port and click Refresh.',
         errPorts: 'Error listing ports: {e}',
         reading: 'Reading the pedal…',
+        reloadProgressTitle: 'Reloading…',
         readDone: 'Read {n} slots from {port}.',
         readErr: 'Couldn’t read the pedal: {e}',
         genericErr: 'Error: {e}',
@@ -144,10 +162,20 @@ const I18N = {
         colorErr: 'Couldn’t change the colour: {e}',
         dlgErr: 'Error opening dialog: {e}',
         uploading: 'Uploading {file} to slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importing presets…',
         noAck: 'No ACK uploading {file} (it may still have applied).',
         uploadFileErr: 'Error uploading {file}: {e}',
         uploadDone: 'Upload finished: {ok}/{total}.',
         exporting: 'Exporting slot {n} to .txp...',
+        exportProgressTitle: 'Exporting preset…',
+        exportMultiProgressTitle: 'Exporting presets…',
+        exportingMulti: 'Exporting {total} presets…',
+        exportRunning: 'Exporting… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp exported to {dir}',
+        exportMultiDoneFailed: 'Exported {ok}/{total} .txp ({fail} failed).',
+        ctxSelCount: '{n} slots selected',
+        ctxExportMulti: 'Export {n} .txp',
+        ctxExportMultiBcho: 'Export {n} .txp with BCho',
         exportSaved: '.txp exported: {path}',
         exportErr: 'Could not export .txp: {e}',
         btnBackupTitle: 'Full pedal backup to a restorable .zip',
@@ -155,9 +183,11 @@ const I18N = {
         btnRestoreTitle: 'Restore a .zip backup to the pedal',
         backupFirst: 'Connect the pedal first.',
         backupRunning: 'Creating backup… {done}/{total} slots',
+        backupProgressTitle: 'Creating backup…',
         backupSaved: 'Backup saved: {path}',
         backupErr: 'Error saving backup: {e}',
         restoreRunning: 'Restoring… {done}/{total}',
+        restoreProgressTitle: 'Restoring backup…',
         restoreDone: 'Restore finished: {ok}/{total} slots.',
         restoreDoneFailed: 'Restore: {ok}/{total} slots ({fail} failed).',
         restoreErr: 'Error restoring: {e}',
@@ -173,6 +203,10 @@ const I18N = {
         offlineWarning: 'The control server cannot be reached. Offline mode: no donation overlay, limited to 1 import and 1 export per session.',
         offlineImportLimit: 'Offline mode: limited to 1 import per session.',
         offlineExportLimit: 'Offline mode: limited to 1 export per session.',
+        reminderMsg: 'Remember that for a minimum contribution of €2 you can get the full version. ;-)',
+        reminderCloseIn: 'Close in {s} s',
+        reminderCloseBtn: 'Close',
+        reminderCanClose: 'You can now close this window',
         pConnecting: 'Connecting to the pedal…',
         pReadingSlot: 'Reading slot {n}/{total}…',
         pGenerating: 'Generating upload data…',
@@ -367,13 +401,16 @@ function ledHex(r, g, b) {
 const state = {
     snapshot: null,
     port: '',
-    selectedIndex: null,
+    selectedIndex: null,   // ultima fila clicada (ancla "activa" para acciones de 1 slot)
+    selected: new Set(),   // multiseleccion de slots (estilo explorador de Windows)
+    selAnchor: null,       // ancla para la seleccion por rango con Shift
     polling: false,
     busy: false,
     droppedPaths: [],
     dragRowIndex: null,
     pedalActiveIndex: null, // preset activo seleccionado en el Pedal
     selecting: false,
+    reloading: false,       // lectura completa en curso → modal "Recargando…"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -421,6 +458,88 @@ function monetizationPartEnabled(part) {
     return !!monetizationConfig.monetizationEnabled && monetizationConfig[part] !== false;
 }
 
+// ¿Hay restricciones activas para este equipo? (no ha donado y el switch de
+// restricciones está activo, o estamos en modo sin conexión). Si el switch maestro
+// se apaga, monetizationPartEnabled devuelve false y esto también deja de aplicar.
+function restrictionsActive() {
+    return !!monetizationConfig.offlineMode
+        || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked);
+}
+
+/* ---- recordatorio periódico de donación (no donantes) ----
+   Cada 5 min de uso aparece una modal con texto intermitente que no se puede cerrar
+   hasta pasados 10 s. Se reprograma tras cada cierre. Deja de mostrarse en cuanto el
+   usuario dona o el switch de monetización se apaga (se comprueba al disparar). */
+const REMINDER_INTERVAL_MS = 5 * 60 * 1000;
+const REMINDER_CLOSE_DELAY = 10; // segundos antes de poder cerrar
+let reminderTimer = null;
+let reminderCountdown = null;
+
+function scheduleReminder() {
+    if (reminderTimer) clearTimeout(reminderTimer);
+    reminderTimer = setTimeout(maybeShowReminder, REMINDER_INTERVAL_MS);
+}
+function maybeShowReminder() {
+    // Si ya no hay restricciones (donó / switch off) seguimos comprobando por si
+    // cambia el estado, pero sin molestar.
+    if (!restrictionsActive()) { scheduleReminder(); return; }
+    // No interrumpir una operación en curso ni apilar sobre el overlay de donación.
+    const ov = $('donationOverlay');
+    if (state.busy || (ov && ov.classList.contains('active'))) { scheduleReminder(); return; }
+    showReminder();
+}
+function showReminder() {
+    const ov = $('reminderOverlay');
+    const btn = $('reminderClose');
+    const countdownText = $('reminderCountdownText');
+    const closeHint = $('reminderCloseHint');
+    if (!ov || !btn || !countdownText || !closeHint) { scheduleReminder(); return; }
+    $('reminderText').textContent = t('reminderMsg');
+    countdownText.textContent = '';
+    closeHint.textContent = '';
+    closeHint.classList.remove('active');
+    btn.classList.remove('visible');
+    btn.disabled = true;
+    ov.classList.add('active');
+    let s = REMINDER_CLOSE_DELAY;
+    const label = () => { countdownText.textContent = t('reminderCloseIn', { s }); };
+    label();
+    if (reminderCountdown) clearInterval(reminderCountdown);
+    reminderCountdown = setInterval(() => {
+        s--;
+        if (s <= 0) {
+            clearInterval(reminderCountdown); reminderCountdown = null;
+            countdownText.textContent = '';
+            closeHint.textContent = t('reminderCanClose');
+            closeHint.classList.add('active');
+            btn.disabled = false;
+            btn.title = t('reminderCloseBtn');
+            btn.setAttribute('aria-label', t('reminderCloseBtn'));
+            btn.classList.add('visible');
+        } else {
+            label();
+        }
+    }, 1000);
+}
+function hideReminder() {
+    const ov = $('reminderOverlay');
+    if (ov) ov.classList.remove('active');
+    const countdownText = $('reminderCountdownText');
+    if (countdownText) countdownText.textContent = '';
+    const closeHint = $('reminderCloseHint');
+    if (closeHint) {
+        closeHint.textContent = '';
+        closeHint.classList.remove('active');
+    }
+    const btn = $('reminderClose');
+    if (btn) {
+        btn.classList.remove('visible');
+        btn.disabled = true;
+    }
+    if (reminderCountdown) { clearInterval(reminderCountdown); reminderCountdown = null; }
+    scheduleReminder(); // el siguiente recordatorio, 5 min después de cerrar este
+}
+
 function applyMonetizationUI() {
     const donate = $('btnDonate');
     if (donate) donate.style.display = monetizationPartEnabled('donateButton') ? '' : 'none';
@@ -449,6 +568,7 @@ async function loadMonetizationConfig() {
             showDonationOverlay('startup');
             b.CheckDonation().then((ok) => { if (ok) donationUnlockSuccess(); }).catch(() => {});
         }
+        scheduleReminder();
     } catch (e) {
         console.error("Monetization config load error:", e);
         Object.assign(monetizationConfig, {
@@ -462,6 +582,7 @@ async function loadMonetizationConfig() {
             exportsDone: 0,
         });
         applyMonetizationUI();
+        scheduleReminder();
     }
 }
 
@@ -709,6 +830,18 @@ function applyLang() {
         b.classList.toggle('active', b.dataset.lang === lang);
     });
     $('dropHint').querySelector('.drop-inner').innerHTML = t('dropHint');
+    // Si el recordatorio está abierto, refrescar su texto (y el botón si ya es cerrable).
+    const remOv = $('reminderOverlay');
+    if (remOv && remOv.classList.contains('active')) {
+        $('reminderText').textContent = t('reminderMsg');
+        const rb = $('reminderClose');
+        const hint = $('reminderCloseHint');
+        if (hint && rb && !rb.disabled) hint.textContent = t('reminderCanClose');
+        if (rb && !rb.disabled) {
+            rb.title = t('reminderCloseBtn');
+            rb.setAttribute('aria-label', t('reminderCloseBtn'));
+        }
+    }
     applyMonetizationUI();
     // re-render dinámico
     renderCards();
@@ -790,7 +923,7 @@ function renderTable() {
         const led = rgbCss(colorOf(p.index));
         const pills = pillsHtml(p.assigned);
         const cls = [];
-        if (p.index === state.selectedIndex) cls.push('selected');
+        if (state.selected.has(p.index)) cls.push('selected');
         if (p.index === activePresetIdx) cls.push('active-preset');
         if (p.loading) cls.push('row-loading');
         return `<tr data-index="${p.index}" draggable="true" class="${cls.join(' ')}">
@@ -834,14 +967,22 @@ function onSnapState(st) {
         port: st.port, model: st.model, modelName: st.modelName, count: st.count,
         assignments: st.assignments, activeSlot: st.activeSlot, colors: st.colors, presets,
     };
+    clearSelection();
     applyModelUI();
     renderCards();
     renderTable();
+    // Lectura completa en curso (arranque / Refrescar / tras restore): modal con
+    // barra de progreso que avanza a medida que llegan los slots.
+    if (state.reloading) ensureProgress(t('reloadProgressTitle'), { total: st.count });
 }
 // Llega un preset leído: rellenamos SOLO su fila (sin re-pintar toda la tabla).
 function fillRow(s) {
     if (!state.snapshot || !state.snapshot.presets[s.index]) return;
     state.snapshot.presets[s.index] = s;
+    if (state.reloading) {
+        const done = state.snapshot.presets.filter((p) => !p.loading).length;
+        updateProgress(done, state.snapshot.count);
+    }
     const tr = document.querySelector(`#slotBody tr[data-index="${s.index}"]`);
     if (tr && tr.children.length >= 8) {
         const td = tr.children;
@@ -902,12 +1043,15 @@ async function loadPorts() {
 }
 
 /* ---- refresh ---- */
-async function refresh() {
+// reloadModal=true muestra la modal "Recargando…" durante la relectura. Solo se
+// usa tras un restore: en el arranque es una carga inicial ("Carga", no "Recarga").
+async function refresh(reloadModal = false) {
     const b = backend();
     if (!b) return;
     // El backend pausa/reanuda el poller automáticamente alrededor de la lectura
     // (withPedal). No paramos el polling aquí para no perder el auto-resume.
     busy(true);
+    state.reloading = reloadModal;
     setStatus(t('reading'), 'busy');
     try {
         await loadPorts();
@@ -923,6 +1067,8 @@ async function refresh() {
         setStatus(t('genericErr', { e }), 'err');
         toast(t('readErr', { e }), 'err');
     } finally {
+        state.reloading = false;
+        hideProgress();
         busy(false);
     }
 }
@@ -956,12 +1102,44 @@ async function refreshState() {
     } catch (e) { /* no fatal */ }
 }
 
-/* ---- selección ---- */
-function selectRow(idx) {
-    state.selectedIndex = idx;
+/* ---- selección (estilo explorador de Windows) ----
+   Clic simple = selecciona solo ese slot. Ctrl+clic = alterna ese slot.
+   Shift+clic = rango contiguo desde el ancla hasta el clicado. */
+function paintSelection() {
     document.querySelectorAll('#slotBody tr').forEach((tr) => {
-        tr.classList.toggle('selected', parseInt(tr.dataset.index, 10) === idx);
+        tr.classList.toggle('selected', state.selected.has(parseInt(tr.dataset.index, 10)));
     });
+}
+function selectedIndices() {
+    return Array.from(state.selected).sort((a, b) => a - b);
+}
+function clearSelection() {
+    state.selected.clear();
+    state.selectedIndex = null;
+    state.selAnchor = null;
+}
+// Selección simple (un solo slot); reemplaza la anterior. Es el comportamiento
+// por defecto y el que usan las acciones de un solo slot (color, menú, Pedal).
+function selectRow(idx) {
+    state.selected = new Set([idx]);
+    state.selectedIndex = idx;
+    state.selAnchor = idx;
+    paintSelection();
+}
+function toggleRow(idx) {
+    if (state.selected.has(idx)) state.selected.delete(idx);
+    else state.selected.add(idx);
+    state.selectedIndex = idx;
+    state.selAnchor = idx;
+    paintSelection();
+}
+function rangeRow(idx) {
+    const anchor = state.selAnchor == null ? idx : state.selAnchor;
+    const lo = Math.min(anchor, idx), hi = Math.max(anchor, idx);
+    state.selected = new Set();
+    for (let i = lo; i <= hi; i++) state.selected.add(i);
+    state.selectedIndex = idx; // el ancla se conserva para extender el rango
+    paintSelection();
 }
 
 // Cambia el preset activo del Pedal al hacer clic en una fila (registro 81 01).
@@ -985,26 +1163,38 @@ async function selectOnPedal(idx) {
 
 /* ---- context menu ---- */
 function showContextMenu(x, y, idx) {
-    selectRow(idx);
-    const preset = presetByIndex(idx);
+    // Estilo explorador: si el slot bajo el cursor NO está en la selección actual,
+    // pasa a ser la selección única; si SÍ lo está, se conserva la multiselección.
+    if (!state.selected.has(idx)) selectRow(idx);
+    const sel = selectedIndices();
     const menu = $('ctxMenu');
-    // Ambos: detalles + subir + exportar. La asignación A/B/Stomp y el color de LED
-    // son específicos del Tonex One (en el Pedal se ocultan: usa bancos, no asignación
-    // libre, y su estado no expone el bloque de colores del One).
-    let items = `
+    let items;
+    if (sel.length > 1) {
+        // Menú de multiselección: solo acciones aplicables al conjunto (exportar).
+        items = `
+    <div class="ctx-sub">${t('ctxSelCount', { n: sel.length })}</div>
+    <div class="ctx-item" data-act="export-multi">${t('ctxExportMulti', { n: sel.length })}</div>
+    <div class="ctx-item" data-act="export-multi-bcho">${t('ctxExportMultiBcho', { n: sel.length })}</div>`;
+    } else {
+        const preset = presetByIndex(idx);
+        // Ambos: detalles + subir + exportar. La asignación A/B/Stomp y el color de LED
+        // son específicos del Tonex One (en el Pedal se ocultan: usa bancos, no asignación
+        // libre, y su estado no expone el bloque de colores del One).
+        items = `
     <div class="ctx-sub">${t('slotWord')} ${slotNum(idx)} · ${esc(preset ? displayName(preset) : '')}</div>
     <div class="ctx-item" data-act="details">${t('ctxDetails')}</div>
     <div class="ctx-item" data-act="upload">${t('ctxUpload')}</div>
     <div class="ctx-item" data-act="export">${t('ctxExport')}</div>
     <div class="ctx-item" data-act="export-bcho">${t('ctxExportBcho')}</div>`;
-    if (!isPedal()) {
-        items += `
+        if (!isPedal()) {
+            items += `
     <div class="ctx-sep"></div>
     <div class="ctx-item" data-act="load-A">${t('ctxLoadA')}</div>
     <div class="ctx-item" data-act="load-B">${t('ctxLoadB')}</div>
     <div class="ctx-item" data-act="load-STOMP">${t('ctxLoadStomp')}</div>
     <div class="ctx-sep"></div>
     <div class="ctx-item" data-act="color">${t('ctxColor')}</div>`;
+        }
     }
     menu.innerHTML = items;
     menu.classList.remove('hidden');
@@ -1026,6 +1216,8 @@ async function handleAction(act, idx) {
     if (act === 'upload') return uploadFlow(idx);
     if (act === 'export') return exportTXP(idx);
     if (act === 'export-bcho') return exportTXP(idx, true);
+    if (act === 'export-multi') return exportSelected(false);
+    if (act === 'export-multi-bcho') return exportSelected(true);
     if (act === 'color') return colorFlow(idx);
     if (act.startsWith('load-')) return loadInto(act.slice(5), idx);
 }
@@ -1181,6 +1373,7 @@ async function uploadPaths(paths, baseSlot) {
     if (overflow > 0) toast(t('overflowWarn', { n: overflow }), '');
     if (!fit.length) return;
     busy(true);
+    ensureProgress(t('importProgressTitle'), { total: fit.length });
     let ok = 0;
     const done = [];
     for (let i = 0; i < fit.length; i++) {
@@ -1213,7 +1406,9 @@ async function uploadPaths(paths, baseSlot) {
             }
             toast(t('uploadFileErr', { file, e }), 'err');
         }
+        updateProgress(i + 1, fit.length);
     }
+    hideProgress();
     setStatus(t('uploadDone', { ok, total: fit.length }), ok ? 'ok' : 'err');
     toast(t('uploadDone', { ok, total: fit.length }), ok ? 'ok' : 'err');
     busy(false);
@@ -1238,6 +1433,7 @@ async function exportTXP(idx, bcho = false) {
     }
     busy(true);
     setStatus(t('exporting', { n: slotNum(idx) }), 'busy');
+    ensureProgress(t('exportProgressTitle'), { indeterminate: true });
     try {
         const path = bcho
             ? await b.ExportTXPBCho(idx, state.port)
@@ -1265,6 +1461,56 @@ async function exportTXP(idx, bcho = false) {
         setStatus(t('genericErr', { e }), 'err');
         toast(t('exportErr', { e }), 'err');
     } finally {
+        hideProgress();
+        busy(false);
+    }
+}
+
+// Exporta TODOS los slots seleccionados a una carpeta (un solo diálogo). El backend
+// pide la carpeta y escribe un .txp por slot. La modal de progreso (determinada) se
+// muestra de forma perezosa con los eventos 'export-progress'.
+async function exportSelected(bcho = false) {
+    const b = backend();
+    if (!b) return;
+    const slots = selectedIndices();
+    if (slots.length <= 1) return exportTXP(slots.length ? slots[0] : state.selectedIndex, bcho);
+    // Misma comprobación de límite que la exportación individual.
+    if (monetizationConfig.offlineMode) {
+        if ((monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 1)) {
+            showOfflineWarning(true);
+            toast(t('offlineExportLimit'), 'err');
+            return;
+        }
+    } else if (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked) {
+        if ((monetizationConfig.exportsDone || 0) >= (monetizationConfig.activeLimit || 3)) {
+            showDonationOverlay('limit');
+            return;
+        }
+    }
+    busy(true);
+    setStatus(t('exportingMulti', { total: slots.length }), 'busy');
+    try {
+        const res = await b.ExportTXPMulti(slots, state.port, bcho);
+        if (res && res.dir) {
+            if (monetizationConfig.offlineMode || (monetizationPartEnabled('restrictions') && !licenseInfo.unlocked)) {
+                monetizationConfig.exportsDone++;
+            }
+            const fail = (res.failed && res.failed.length) || 0;
+            const msg = fail
+                ? t('exportMultiDoneFailed', { ok: res.exported, total: res.total, fail })
+                : t('exportMultiDone', { ok: res.exported, total: res.total, dir: res.dir });
+            setStatus(msg, fail ? 'err' : 'ok');
+            toast(msg, fail ? '' : 'ok');
+        } else {
+            setStatus(t('statusReady'), '');
+        }
+    } catch (e) {
+        const errorMsg = String(e.message || e);
+        if (errorMsg.includes('OFFLINE_LIMIT')) { showOfflineWarning(true); toast(t('offlineExportLimit'), 'err'); }
+        else if (errorMsg.includes('DONATION_LIMIT')) { showDonationOverlay('limit'); }
+        else { setStatus(t('genericErr', { e }), 'err'); toast(t('exportErr', { e }), 'err'); }
+    } finally {
+        hideProgress();
         busy(false);
     }
 }
@@ -1331,6 +1577,7 @@ async function backup() {
         else if (msg.includes('DONATION_LIMIT')) { showDonationOverlay('limit'); }
         else toast(t('backupErr', { e }), 'err');
     } finally {
+        hideProgress();
         busy(false);
     }
 }
@@ -1351,8 +1598,9 @@ async function restore() {
                 : t('restoreDone', { ok: rep.uploaded, total: rep.total });
             setStatus(msg, fail ? 'err' : 'ok');
             toast(msg, fail ? '' : 'ok');
-            // El pedal cambió: releer la snapshot completa.
-            await refresh();
+            // El pedal cambió: releer la snapshot completa (con modal "Recargando…").
+            hideProgress();
+            await refresh(true);
         } else {
             setStatus(t('statusReady'), '');
         }
@@ -1362,6 +1610,7 @@ async function restore() {
         else if (msg.includes('DONATION_LIMIT')) { showDonationOverlay('limit'); }
         else toast(t('restoreErr', { e }), 'err');
     } finally {
+        hideProgress();
         busy(false);
     }
 }
@@ -1439,6 +1688,30 @@ function openModal(html) {
     $('modal').querySelectorAll('[data-close]').forEach((el) => { el.onclick = closeModal; });
 }
 function closeModal() { $('overlay').classList.add('hidden'); }
+/* ---- modal de progreso (backup / restore / import / export) ----
+   ensureProgress muestra la modal solo si está oculta (idempotente), para
+   poder llamarla en cada evento de progreso sin re-iniciarla. En modo
+   indeterminate oculta el contador y anima la barra (operaciones de un solo
+   paso, p.ej. exportar un slot). */
+function ensureProgress(title, opts = {}) {
+    const el = $('loadProgress');
+    if (!el.classList.contains('hidden')) return;
+    const indet = !!opts.indeterminate;
+    $('loadProgressTitle').textContent = title;
+    el.querySelector('.load-progress-count').style.display = indet ? 'none' : '';
+    const fill = $('loadProgressFill');
+    fill.classList.toggle('indeterminate', indet);
+    if (indet) fill.style.width = '';
+    else updateProgress(0, opts.total || 0);
+    el.classList.remove('hidden');
+}
+function updateProgress(done, total) {
+    $('loadProgressDone').textContent = done;
+    $('loadProgressTotal').textContent = total;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    $('loadProgressFill').style.width = pct + '%';
+}
+function hideProgress() { $('loadProgress').classList.add('hidden'); }
 function setupCopyButton(btnId, targetId) {
     const btn = $(btnId);
     if (!btn) return;
@@ -1461,7 +1734,7 @@ function setupCopyButton(btnId, targetId) {
 
 /* ---- init ---- */
 function wireEvents() {
-    $('btnRefresh').onclick = refresh;
+    $('btnRefresh').onclick = () => refresh();
     $('btnOpen').onclick = () => uploadFlowChooseSlot();
     $('btnBackup').onclick = backup;
     $('btnRestore').onclick = restore;
@@ -1473,6 +1746,7 @@ function wireEvents() {
     $('donationClose').onclick = hideDonationOverlay;
     $('donationManualToggle').onclick = () => $('donationManual').classList.toggle('open');
     $('donationApply').onclick = donationApplyManual;
+    $('reminderClose').onclick = () => { if (!$('reminderClose').disabled) hideReminder(); };
     setupCopyButton('btnCopyToken', 'donationToken');
     setupCopyButton('btnCopyHwid', 'donationHwid');
     $('portSelect').onchange = (e) => { state.port = e.target.value; };
@@ -1490,8 +1764,14 @@ function wireEvents() {
             colorFlow(idx);
             return;
         }
-        selectRow(idx);
-        if (isPedal()) selectOnPedal(idx); // Pedal: clic = cambiar preset activo
+        if (e.shiftKey) {
+            rangeRow(idx);
+        } else if (e.ctrlKey || e.metaKey) {
+            toggleRow(idx);
+        } else {
+            selectRow(idx);
+            if (isPedal()) selectOnPedal(idx); // Pedal: clic simple = cambiar preset activo
+        }
     });
     $('slotBody').addEventListener('dblclick', (e) => {
         const tr = e.target.closest('tr[data-index]');
@@ -1597,8 +1877,9 @@ function subscribeBackend() {
     const r = rt();
     if (!r) return;
     r.EventsOn('progress', (msg) => setStatus(translateProgress(msg), 'busy'));
-    r.EventsOn('backup-progress', (p) => { if (p) setStatus(t('backupRunning', { done: p.done, total: p.total }), 'busy'); });
-    r.EventsOn('restore-progress', (p) => { if (p) setStatus(t('restoreRunning', { done: p.done, total: p.total }), 'busy'); });
+    r.EventsOn('backup-progress', (p) => { if (p) { setStatus(t('backupRunning', { done: p.done, total: p.total }), 'busy'); ensureProgress(t('backupProgressTitle')); updateProgress(p.done, p.total); } });
+    r.EventsOn('restore-progress', (p) => { if (p) { setStatus(t('restoreRunning', { done: p.done, total: p.total }), 'busy'); ensureProgress(t('restoreProgressTitle')); updateProgress(p.done, p.total); } });
+    r.EventsOn('export-progress', (p) => { if (p) { setStatus(t('exportRunning', { done: p.done, total: p.total }), 'busy'); ensureProgress(t('exportMultiProgressTitle')); updateProgress(p.done, p.total); } });
     r.EventsOn('snap-state', onSnapState);   // carga progresiva: esqueleto
     r.EventsOn('snap-slot', fillRow);        // carga progresiva: fila a fila
     r.EventsOn('footswitch', onFootswitch);

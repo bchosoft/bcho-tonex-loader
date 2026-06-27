@@ -177,45 +177,45 @@ func fetchMonetizationConfig() (MonetizationConfig, error) {
 }
 
 func (a *App) GetMonetizationConfig() MonetizationConfig {
-	a.mu.Lock()
+	a.licMu.Lock()
 	if a.monetizationLoaded {
 		cfg := a.monetizationConfig
-		a.mu.Unlock()
+		a.licMu.Unlock()
 		return cfg
 	}
-	a.mu.Unlock()
+	a.licMu.Unlock()
 
 	a.configMu.Lock()
 	defer a.configMu.Unlock()
 
 	// Double-check if loaded while waiting for configMu
-	a.mu.Lock()
+	a.licMu.Lock()
 	if a.monetizationLoaded {
 		cfg := a.monetizationConfig
-		a.mu.Unlock()
+		a.licMu.Unlock()
 		return cfg
 	}
-	a.mu.Unlock()
+	a.licMu.Unlock()
 
 	cfg, err := fetchMonetizationConfig()
 	if err != nil {
 		cfg = offlineMonetizationConfig()
 	}
 
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.monetizationConfig = cfg
 	a.monetizationLoaded = true
-	a.mu.Unlock()
+	a.licMu.Unlock()
 	return cfg
 }
 
 // GetLicenseInfo reports the current unlock state plus the donation token.
 func (a *App) GetLicenseInfo() LicenseInfo {
 	cfg := a.GetMonetizationConfig()
-	a.mu.Lock()
+	a.licMu.Lock()
 	impDone := a.importsDone
 	expDone := a.exportsDone
-	a.mu.Unlock()
+	a.licMu.Unlock()
 
 	info := LicenseInfo{
 		FreeLimit:           freeLimit,
@@ -255,9 +255,9 @@ func (a *App) ApplyCode(code string) (bool, error) {
 	if err := saveLicense(code); err != nil {
 		return false, err
 	}
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.unlocked = true
-	a.mu.Unlock()
+	a.licMu.Unlock()
 	return true, nil
 }
 
@@ -266,18 +266,18 @@ func (a *App) IsUnlocked() bool {
 	if !a.GetMonetizationConfig().MonetizationEnabled {
 		return true
 	}
-	a.mu.Lock()
+	a.licMu.Lock()
 	if a.unlocked {
-		a.mu.Unlock()
+		a.licMu.Unlock()
 		return true
 	}
-	a.mu.Unlock()
+	a.licMu.Unlock()
 
 	// check local stored license
 	ok := checkUnlocked()
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.unlocked = ok
-	a.mu.Unlock()
+	a.licMu.Unlock()
 	return ok
 }
 
@@ -318,9 +318,9 @@ func (a *App) CheckDonation() (bool, error) {
 	if err := saveLicense(r.License); err != nil {
 		return false, err
 	}
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.unlocked = true
-	a.mu.Unlock()
+	a.licMu.Unlock()
 	return true, nil
 }
 
@@ -339,8 +339,8 @@ func (a *App) checkImportAllowed() error {
 	if limit <= 0 {
 		limit = freeLimit
 	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.licMu.Lock()
+	defer a.licMu.Unlock()
 	if a.importsDone >= limit {
 		if cfg.OfflineMode {
 			return errOfflineLimit
@@ -361,9 +361,9 @@ func (a *App) addImport() {
 	if !cfg.OfflineMode && a.IsUnlocked() {
 		return
 	}
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.importsDone++
-	a.mu.Unlock()
+	a.licMu.Unlock()
 }
 
 func (a *App) checkExportAllowed() error {
@@ -381,8 +381,8 @@ func (a *App) checkExportAllowed() error {
 	if limit <= 0 {
 		limit = freeLimit
 	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.licMu.Lock()
+	defer a.licMu.Unlock()
 	if a.exportsDone >= limit {
 		if cfg.OfflineMode {
 			return errOfflineLimit
@@ -403,7 +403,7 @@ func (a *App) addExport() {
 	if !cfg.OfflineMode && a.IsUnlocked() {
 		return
 	}
-	a.mu.Lock()
+	a.licMu.Lock()
 	a.exportsDone++
-	a.mu.Unlock()
+	a.licMu.Unlock()
 }
