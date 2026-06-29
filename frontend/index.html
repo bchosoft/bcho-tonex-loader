@@ -20,6 +20,11 @@
             <div id="langSwitch" class="lang-switch">
                 <button class="lang-btn" data-lang="es" title="Español"></button>
                 <button class="lang-btn" data-lang="en" title="English"></button>
+                <button class="lang-btn" data-lang="gl" title="Galego"></button>
+                <button class="lang-btn dual-flag" data-lang="pt" title="Português / Brasileiro"></button>
+                <button class="lang-btn" data-lang="it" title="Italiano"></button>
+                <button class="lang-btn" data-lang="fr" title="Français"></button>
+                <button class="lang-btn" data-lang="de" title="Deutsch"></button>
             </div>
             <select id="portSelect" data-i18n-title="portTitle" title="Puerto COM del pedal"></select>
             <button id="btnRefresh" class="btn primary" data-i18n="btnRefresh">⟳ Refrescar</button>
@@ -78,39 +83,46 @@
 <!-- Donation Overlay -->
 <div id="donationOverlay" class="donation-overlay">
     <div class="donation-card">
-        <button id="donationClose" class="donation-close" title="Cerrar / Close">×</button>
-        <div class="donation-coffee">☕</div>
-        <h2>Apoya el proyecto · Support the project</h2>
-        <div class="donation-text">
-            <p>🇪🇸 Las herramientas usadas para desarrollar esta app <b>no son gratuitas</b>. Si te resulta útil, considera una donación. Sin donación, cada sesión permite <b>3 importaciones</b> y <b>3 exportaciones</b>. Al donar desaparecen esta pantalla y <b>todos los límites</b>, para siempre, en este equipo.</p>
-            <p>🇬🇧 The tools used to build this app <b>aren't free</b>. If you find it useful, please consider donating. Without a donation, each session allows <b>3 imports</b> and <b>3 exports</b>. Donating removes this screen and <b>all limits</b>, forever, on this computer.</p>
+        <button id="donationClose" class="donation-close" title="">×</button>
+        <div class="donation-lang-container">
+            <div class="lang-switch donation-lang-switch">
+                <button class="lang-btn" data-lang="es" title="Español"></button>
+                <button class="lang-btn" data-lang="en" title="English"></button>
+                <button class="lang-btn" data-lang="gl" title="Galego"></button>
+                <button class="lang-btn dual-flag" data-lang="pt" title="Português / Brasileiro"></button>
+                <button class="lang-btn" data-lang="it" title="Italiano"></button>
+                <button class="lang-btn" data-lang="fr" title="Français"></button>
+                <button class="lang-btn" data-lang="de" title="Deutsch"></button>
+            </div>
         </div>
+        <div class="donation-coffee">☕</div>
+        <h2 id="donationTitle"></h2>
+        <div class="donation-text"></div>
         <div class="donation-token-box">
             <span class="donation-token-label donation-token-label-important">
-                <span class="donation-token-label-es">IMPORTANTE: Pega este código en el mensaje de tu donación</span>
-                <span class="donation-token-label-en">IMPORTANT: Paste this code in your donation message</span>
             </span>
             <div class="donation-token-row">
                 <code id="donationToken">—</code>
-                <button id="btnCopyToken" class="btn-copy" title="Copiar / Copy">📋</button>
+                <button id="btnCopyToken" class="btn-copy" title="">📋</button>
             </div>
         </div>
         <div class="donation-actions">
-            <button id="donationDonate" class="btn donate">☕ Donar / Donate</button>
-            <button id="donationCheck" class="btn">Ya he donado / I've donated</button>
+            <button id="donationDonate" class="btn donate"></button>
+            <button id="donationCheck" class="btn"></button>
         </div>
         <p id="donationStatus" class="donation-status"></p>
+        <p id="donationNotFoundHint" class="donation-not-found-hint" style="display: none;"></p>
         <div id="donationCountdown" class="donation-countdown"></div>
-        <button id="donationManualToggle" class="donation-manual-toggle">¿Tienes un código? · Have a code?</button>
+        <button id="donationManualToggle" class="donation-manual-toggle"></button>
         <div id="donationManual" class="donation-manual">
-            <span class="donation-token-label">ID de soporte (envíalo si necesitas un código) · Support ID (send it if you need a code):</span>
+            <span class="donation-token-label"></span>
             <div class="donation-token-row" style="margin: 8px 0 14px;">
                 <code id="donationHwid" class="donation-hwid" style="flex: 1; margin: 0; text-align: left;">—</code>
-                <button id="btnCopyHwid" class="btn-copy" title="Copiar / Copy">📋</button>
+                <button id="btnCopyHwid" class="btn-copy" title="">📋</button>
             </div>
             <div class="donation-manual-row">
-                <input id="donationCodeInput" class="donation-code-input" type="text" placeholder="Pega aquí tu código · Paste your code here" />
-                <button id="donationApply" class="btn">Aplicar · Apply</button>
+                <input id="donationCodeInput" class="donation-code-input" type="text" placeholder="" />
+                <button id="donationApply" class="btn"></button>
             </div>
         </div>
     </div>

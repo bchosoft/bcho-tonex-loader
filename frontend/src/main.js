@@ -6,8 +6,16 @@ import './style.css';
  * ------------------------------------------------------------------------- */
 
 /* ===========================================================================
- * i18n — Español / English
+ * i18n
  * ========================================================================= */
+const SUPPORTED_LANGS = ['es', 'en', 'gl', 'pt', 'it', 'fr', 'de'];
+const DEFAULT_LANG = 'es';
+const LANGUAGE_STORAGE_KEY = 'tonexLang';
+
+function normalizeLang(value) {
+    return SUPPORTED_LANGS.includes(value) ? value : DEFAULT_LANG;
+}
+
 const I18N = {
     es: {
         subtitle: 'Tonex One & Tonex Pedal',
@@ -101,6 +109,31 @@ const I18N = {
         reminderCloseIn: 'Cerrar en {s} s',
         reminderCloseBtn: 'Cerrar',
         reminderCanClose: 'Ya puedes cerrar esta ventana',
+        supportProject: '☕ Apoya el proyecto',
+        supportProjectTitle: 'Apoya el proyecto',
+        donateAndActivate: '☕ Dona y Activa',
+        donateAndActivateTitle: 'Dona y Activa',
+        languageSelectorLabel: 'Selector de idioma',
+        fullVersion: 'Versión Completa',
+        restrictedVersion: 'Versión Restringida',
+        donationTitleText: 'Apoya el proyecto',
+        donationBody: '<p>🇪🇸 Las herramientas usadas para desarrollar esta app <b>no son gratuitas</b>. Si te resulta útil, considera una donación. Sin donación, cada sesión permite <b>3 importaciones</b> y <b>3 exportaciones</b>. Al donar desaparecen esta pantalla y <b>todos los límites</b>, para siempre, en este equipo.</p>',
+        donationImportant: 'IMPORTANTE: Pega este código en el mensaje de tu donación',
+        donationDonateButton: '☕ Donar',
+        donationCheckButton: 'Ya he donado',
+        donationManualToggle: '¿Tienes un código?',
+        donationSupportId: 'ID de soporte (envíalo si necesitas un código):',
+        donationCodePlaceholder: 'Pega aquí tu código',
+        donationApplyButton: 'Aplicar',
+        donationCloseTitle: 'Cerrar',
+        donationCopyTitle: 'Copiar',
+        donationCountdown: 'Podrás usar la app en <span class="countdown-num">{s}</span> s',
+        donationVerified: '¡Donación verificada! Gracias 💚',
+        donationChecking: 'Comprobando...',
+        donationNotFound: 'Aún no consta tu donación. Espera unos segundos tras donar y reinténtalo.',
+        donationNotFoundHint: 'Si en 1 minuto no se activa, pulsa en el enlace inferior "¿Tienes un código?", copia el ID de soporte y envíalo por mensaje privado para recibir otro código que podrás pegar en esta ventana.',
+        donationApplyingCode: 'Aplicando código...',
+        donationInvalidCode: 'Código no válido para este equipo.',
         // progreso (traducción de los mensajes del backend)
         pConnecting: 'Conectando con el pedal…',
         pReadingSlot: 'Leyendo slot {n}/{total}…',
@@ -207,6 +240,31 @@ const I18N = {
         reminderCloseIn: 'Close in {s} s',
         reminderCloseBtn: 'Close',
         reminderCanClose: 'You can now close this window',
+        supportProject: '☕ Support the project',
+        supportProjectTitle: 'Support the project',
+        donateAndActivate: '☕ Donate & Activate',
+        donateAndActivateTitle: 'Donate & Activate',
+        languageSelectorLabel: 'Language selector',
+        fullVersion: 'Full Version',
+        restrictedVersion: 'Restricted Version',
+        donationTitleText: 'Support the project',
+        donationBody: '<p>🇬🇧 The tools used to build this app <b>aren’t free</b>. If you find it useful, please consider donating. Without a donation, each session allows <b>3 imports</b> and <b>3 exports</b>. Donating removes this screen and <b>all limits</b>, forever, on this computer.</p>',
+        donationImportant: 'IMPORTANT: Paste this code in your donation message',
+        donationDonateButton: '☕ Donate',
+        donationCheckButton: "I've donated",
+        donationManualToggle: 'Have a code?',
+        donationSupportId: 'Support ID (send it if you need a code):',
+        donationCodePlaceholder: 'Paste your code here',
+        donationApplyButton: 'Apply',
+        donationCloseTitle: 'Close',
+        donationCopyTitle: 'Copy',
+        donationCountdown: 'You can use the app in <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Donation verified! Thanks 💚',
+        donationChecking: 'Checking...',
+        donationNotFound: 'Donation not found yet. Wait a few seconds after donating and try again.',
+        donationNotFoundHint: 'If it is not activated in 1 minute, click "Have a code?", copy the Support ID and send it by private message to receive another code to paste here.',
+        donationApplyingCode: 'Applying code...',
+        donationInvalidCode: 'Code not valid for this computer.',
         pConnecting: 'Connecting to the pedal…',
         pReadingSlot: 'Reading slot {n}/{total}…',
         pGenerating: 'Generating upload data…',
@@ -222,14 +280,1170 @@ const I18N = {
     },
 };
 
-let lang = localStorage.getItem('tonexLang') || 'es';
+Object.assign(I18N, {
+    gl: {
+        ...I18N.es,
+        btnRefresh: '⟳ Actualizar',
+        btnOpen: '📂 Abrir .txp',
+        btnHelp: '❔ Axuda',
+        btnDonate: '☕ Doar',
+        donateTitle: 'Apoia o proxecto en Ko-fi',
+        portTitle: 'Porto COM do pedal',
+        pollTitle: 'Seguir o footswitch en directo',
+        thName: 'Nome', thCharacter: 'Carácter', thTone: 'Modelo', thAmp: 'Amplificador', thCab: 'Pantalla', thAssigned: 'Asignado',
+        emptyRow: 'Conecta o pedal e preme <b>Actualizar</b>.',
+        statusReady: 'Listo. Conecta un pedal Tonex.',
+        noPedal: 'Non se detecta ningún pedal Tonex por USB.',
+        pedalDetected: 'Pedal detectado en {port}.',
+        reading: 'Lendo o pedal…',
+        readDone: 'Lidos {n} slots desde {port}.',
+        close: 'Pechar', cancel: 'Cancelar',
+        offlineWarning: 'Non se pode conectar co servidor de control. Modo sen conexión: sen pantalla de doazón e con límite de 1 importación e 1 exportación por sesión.',
+        offlineImportLimit: 'Modo sen conexión: límite de 1 importación por sesión.',
+        offlineExportLimit: 'Modo sen conexión: límite de 1 exportación por sesión.',
+        reminderMsg: 'Lembra que por unha contribución mínima de 2 euros podes ter a versión completa. ;-)',
+        reminderCloseIn: 'Pechar en {s} s',
+        reminderCloseBtn: 'Pechar',
+        reminderCanClose: 'Xa podes pechar esta xanela',
+        supportProject: '☕ Apoia o proxecto',
+        supportProjectTitle: 'Apoia o proxecto',
+        donateAndActivate: '☕ Doa e Activa',
+        donateAndActivateTitle: 'Doa e Activa',
+        languageSelectorLabel: 'Selector de idioma',
+        fullVersion: 'Versión Completa',
+        restrictedVersion: 'Versión Restrinxida',
+        donationTitleText: 'Apoia o proxecto',
+        donationBody: '<p>As ferramentas usadas para desenvolver esta app <b>non son gratuítas</b>. Se che resulta útil, considera facer unha doazón. Sen doazón, cada sesión permite <b>3 importacións</b> e <b>3 exportacións</b>. Ao doar desaparecen esta pantalla e <b>todos os límites</b>, para sempre, neste equipo.</p>',
+        donationImportant: 'IMPORTANTE: Pega este código na mensaxe da túa doazón',
+        donationDonateButton: '☕ Doar',
+        donationCheckButton: 'Xa doei',
+        donationManualToggle: 'Tes un código?',
+        donationSupportId: 'ID de soporte (envíao se precisas un código):',
+        donationCodePlaceholder: 'Pega aquí o teu código',
+        donationApplyButton: 'Aplicar',
+        donationCloseTitle: 'Pechar',
+        donationCopyTitle: 'Copiar',
+        donationCountdown: 'Poderás usar a app en <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Doazón verificada! Grazas 💚',
+        donationChecking: 'Comprobando...',
+        donationNotFound: 'Aínda non consta a túa doazón. Agarda uns segundos despois de doar e téntao de novo.',
+        donationNotFoundHint: 'Se en 1 minuto non se activa, preme "Tes un código?", copia o ID de soporte e envíao por mensaxe privada para recibir outro código.',
+        donationApplyingCode: 'Aplicando código...',
+        donationInvalidCode: 'Código non válido para este equipo.',
+        helpTitle: 'Axuda — Tonex Loader',
+    },
+    pt: {
+        ...I18N.es,
+        btnRefresh: '⟳ Atualizar',
+        btnOpen: '📂 Abrir .txp',
+        btnHelp: '❔ Ajuda',
+        btnDonate: '☕ Doar',
+        donateTitle: 'Apoie o projeto no Ko-fi',
+        portTitle: 'Porta COM do pedal',
+        pollTitle: 'Seguir o footswitch ao vivo',
+        thName: 'Nome', thCharacter: 'Caráter', thTone: 'Modelo', thAmp: 'Amplificador', thCab: 'Caixa', thAssigned: 'Atribuído',
+        emptyRow: 'Conecte o pedal e clique em <b>Atualizar</b>.',
+        statusReady: 'Pronto. Conecte um pedal Tonex.',
+        noPedal: 'Nenhum pedal Tonex detectado por USB.',
+        pedalDetected: 'Pedal detectado em {port}.',
+        reading: 'Lendo o pedal…',
+        readDone: '{n} slots lidos de {port}.',
+        close: 'Fechar', cancel: 'Cancelar',
+        offlineWarning: 'Não foi possível conectar ao servidor de controle. Modo offline: sem tela de doação e limitado a 1 importação e 1 exportação por sessão.',
+        offlineImportLimit: 'Modo offline: limite de 1 importação por sessão.',
+        offlineExportLimit: 'Modo offline: limite de 1 exportação por sessão.',
+        reminderMsg: 'Lembre-se: com uma contribuição mínima de 2 euros você pode ter a versão completa. ;-)',
+        reminderCloseIn: 'Fechar em {s} s',
+        reminderCloseBtn: 'Fechar',
+        reminderCanClose: 'Você já pode fechar esta janela',
+        supportProject: '☕ Apoie o projeto',
+        supportProjectTitle: 'Apoie o projeto',
+        donateAndActivate: '☕ Doe e Ative',
+        donateAndActivateTitle: 'Doe e Ative',
+        languageSelectorLabel: 'Seletor de idioma',
+        fullVersion: 'Versão Completa',
+        restrictedVersion: 'Versão Restrita',
+        donationTitleText: 'Apoie o projeto',
+        donationBody: '<p>🇵🇹 🇧🇷 As ferramentas usadas para criar este app <b>não são gratuitas</b>. Se ele for útil para você, considere fazer uma doação. Sem doação, cada sessão permite <b>3 importações</b> e <b>3 exportações</b>. Ao doar, esta tela e <b>todos os limites</b> desaparecem para sempre neste computador.</p>',
+        donationImportant: 'IMPORTANTE: Cole este código na mensagem da sua doação',
+        donationDonateButton: '☕ Doar',
+        donationCheckButton: 'Já doei',
+        donationManualToggle: 'Tem um código?',
+        donationSupportId: 'ID de suporte (envie se precisar de um código):',
+        donationCodePlaceholder: 'Cole seu código aqui',
+        donationApplyButton: 'Aplicar',
+        donationCloseTitle: 'Fechar',
+        donationCopyTitle: 'Copiar',
+        donationCountdown: 'Você poderá usar o app em <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Doação verificada! Obrigado 💚',
+        donationChecking: 'Verificando...',
+        donationNotFound: 'Sua doação ainda não aparece. Aguarde alguns segundos depois de doar e tente novamente.',
+        donationNotFoundHint: 'Se em 1 minuto não for ativado, clique em "Tem um código?", copie o ID de suporte e envie por mensagem privada para receber outro código.',
+        donationApplyingCode: 'Aplicando código...',
+        donationInvalidCode: 'Código não válido para este computador.',
+        helpTitle: 'Ajuda — Tonex Loader',
+    },
+    it: {
+        ...I18N.en,
+        btnRefresh: '⟳ Aggiorna',
+        btnOpen: '📂 Apri .txp',
+        btnHelp: '❔ Aiuto',
+        btnDonate: '☕ Dona',
+        donateTitle: 'Sostieni il progetto su Ko-fi',
+        portTitle: 'Porta COM del pedale',
+        pollTitle: 'Segui il footswitch in tempo reale',
+        emptyRow: 'Collega il pedale e premi <b>Aggiorna</b>.',
+        statusReady: 'Pronto. Collega un pedale Tonex.',
+        noPedal: 'Nessun pedale Tonex rilevato via USB.',
+        pedalDetected: 'Pedale rilevato su {port}.',
+        reading: 'Lettura del pedale…',
+        close: 'Chiudi', cancel: 'Annulla',
+        offlineWarning: 'Impossibile raggiungere il server di controllo. Modalità offline: nessuna schermata di donazione e limite di 1 importazione e 1 esportazione per sessione.',
+        offlineImportLimit: 'Modalità offline: limite di 1 importazione per sessione.',
+        offlineExportLimit: 'Modalità offline: limite di 1 esportazione per sessione.',
+        reminderMsg: 'Ricorda che con un contributo minimo di 2 euro puoi avere la versione completa. ;-)',
+        reminderCloseIn: 'Chiudi tra {s} s',
+        reminderCloseBtn: 'Chiudi',
+        reminderCanClose: 'Ora puoi chiudere questa finestra',
+        supportProject: '☕ Sostieni il progetto',
+        supportProjectTitle: 'Sostieni il progetto',
+        donateAndActivate: '☕ Dona e Attiva',
+        donateAndActivateTitle: 'Dona e Attiva',
+        languageSelectorLabel: 'Selettore lingua',
+        fullVersion: 'Versione Completa',
+        restrictedVersion: 'Versione Limitata',
+        donationTitleText: 'Sostieni il progetto',
+        donationBody: '<p>🇮🇹 Gli strumenti usati per sviluppare questa app <b>non sono gratuiti</b>. Se ti è utile, valuta una donazione. Senza donazione, ogni sessione permette <b>3 importazioni</b> e <b>3 esportazioni</b>. Con una donazione questa schermata e <b>tutti i limiti</b> spariscono per sempre su questo computer.</p>',
+        donationImportant: 'IMPORTANTE: incolla questo codice nel messaggio della tua donazione',
+        donationDonateButton: '☕ Dona',
+        donationCheckButton: 'Ho donato',
+        donationManualToggle: 'Hai un codice?',
+        donationSupportId: 'ID di supporto (invialo se ti serve un codice):',
+        donationCodePlaceholder: 'Incolla qui il tuo codice',
+        donationApplyButton: 'Applica',
+        donationCloseTitle: 'Chiudi',
+        donationCopyTitle: 'Copia',
+        donationCountdown: 'Potrai usare l’app tra <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Donazione verificata! Grazie 💚',
+        donationChecking: 'Verifica in corso...',
+        donationNotFound: 'La tua donazione non risulta ancora. Attendi qualche secondo dopo aver donato e riprova.',
+        donationNotFoundHint: 'Se non si attiva entro 1 minuto, fai clic su "Hai un codice?", copia l’ID di supporto e invialo tramite messaggio privato per ricevere un altro codice.',
+        donationApplyingCode: 'Applicazione del codice...',
+        donationInvalidCode: 'Codice non valido per questo computer.',
+        helpTitle: 'Aiuto — Tonex Loader',
+    },
+    fr: {
+        ...I18N.en,
+        btnRefresh: '⟳ Actualiser',
+        btnOpen: '📂 Ouvrir .txp',
+        btnHelp: '❔ Aide',
+        btnDonate: '☕ Faire un don',
+        donateTitle: 'Soutenir le projet sur Ko-fi',
+        portTitle: 'Port COM de la pédale',
+        pollTitle: 'Suivre le footswitch en direct',
+        emptyRow: 'Connectez la pédale et cliquez sur <b>Actualiser</b>.',
+        statusReady: 'Prêt. Connectez une pédale Tonex.',
+        noPedal: 'Aucune pédale Tonex détectée par USB.',
+        pedalDetected: 'Pédale détectée sur {port}.',
+        reading: 'Lecture de la pédale…',
+        close: 'Fermer', cancel: 'Annuler',
+        offlineWarning: 'Impossible de joindre le serveur de contrôle. Mode hors ligne : pas d’écran de don, limite de 1 importation et 1 exportation par session.',
+        offlineImportLimit: 'Mode hors ligne : limite de 1 importation par session.',
+        offlineExportLimit: 'Mode hors ligne : limite de 1 exportation par session.',
+        reminderMsg: 'Rappel : avec une contribution minimale de 2 euros, vous pouvez obtenir la version complète. ;-)',
+        reminderCloseIn: 'Fermer dans {s} s',
+        reminderCloseBtn: 'Fermer',
+        reminderCanClose: 'Vous pouvez maintenant fermer cette fenêtre',
+        supportProject: '☕ Soutenez le projet',
+        supportProjectTitle: 'Soutenez le projet',
+        donateAndActivate: '☕ Donnez et Activez',
+        donateAndActivateTitle: 'Donnez et Activez',
+        languageSelectorLabel: 'Sélecteur de langue',
+        fullVersion: 'Version Complète',
+        restrictedVersion: 'Version Limitée',
+        donationTitleText: 'Soutenir le projet',
+        donationBody: '<p>🇫🇷 Les outils utilisés pour développer cette app <b>ne sont pas gratuits</b>. Si elle vous est utile, pensez à faire un don. Sans don, chaque session permet <b>3 importations</b> et <b>3 exportations</b>. Un don supprime cet écran et <b>toutes les limites</b>, définitivement, sur cet ordinateur.</p>',
+        donationImportant: 'IMPORTANT : collez ce code dans le message de votre don',
+        donationDonateButton: '☕ Faire un don',
+        donationCheckButton: 'J’ai fait un don',
+        donationManualToggle: 'Vous avez un code ?',
+        donationSupportId: 'ID de support (envoyez-le si vous avez besoin d’un code) :',
+        donationCodePlaceholder: 'Collez votre code ici',
+        donationApplyButton: 'Appliquer',
+        donationCloseTitle: 'Fermer',
+        donationCopyTitle: 'Copier',
+        donationCountdown: 'Vous pourrez utiliser l’app dans <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Don vérifié ! Merci 💚',
+        donationChecking: 'Vérification...',
+        donationNotFound: 'Votre don n’apparaît pas encore. Attendez quelques secondes après le don, puis réessayez.',
+        donationNotFoundHint: 'Si l’activation ne se fait pas dans 1 minute, cliquez sur "Vous avez un code ?", copiez l’ID de support et envoyez-le par message privé pour recevoir un autre code.',
+        donationApplyingCode: 'Application du code...',
+        donationInvalidCode: 'Code non valide pour cet ordinateur.',
+        helpTitle: 'Aide — Tonex Loader',
+    },
+    de: {
+        ...I18N.en,
+        btnRefresh: '⟳ Aktualisieren',
+        btnOpen: '📂 .txp öffnen',
+        btnHelp: '❔ Hilfe',
+        btnDonate: '☕ Spenden',
+        donateTitle: 'Das Projekt auf Ko-fi unterstützen',
+        portTitle: 'COM-Port des Pedals',
+        pollTitle: 'Footswitch live verfolgen',
+        emptyRow: 'Pedal anschließen und <b>Aktualisieren</b> klicken.',
+        statusReady: 'Bereit. Schließe ein Tonex-Pedal an.',
+        noPedal: 'Kein Tonex-Pedal per USB erkannt.',
+        pedalDetected: 'Pedal an {port} erkannt.',
+        reading: 'Pedal wird gelesen…',
+        close: 'Schließen', cancel: 'Abbrechen',
+        offlineWarning: 'Der Kontrollserver ist nicht erreichbar. Offline-Modus: kein Spendenfenster, Limit von 1 Import und 1 Export pro Sitzung.',
+        offlineImportLimit: 'Offline-Modus: Limit von 1 Import pro Sitzung.',
+        offlineExportLimit: 'Offline-Modus: Limit von 1 Export pro Sitzung.',
+        reminderMsg: 'Hinweis: Mit einem Mindestbeitrag von 2 Euro erhältst du die Vollversion. ;-)',
+        reminderCloseIn: 'Schließen in {s} s',
+        reminderCloseBtn: 'Schließen',
+        reminderCanClose: 'Du kannst dieses Fenster jetzt schließen',
+        supportProject: '☕ Unterstütze das Projekt',
+        supportProjectTitle: 'Unterstütze das Projekt',
+        donateAndActivate: '☕ Spenden & Aktivieren',
+        donateAndActivateTitle: 'Spenden & Aktivieren',
+        languageSelectorLabel: 'Sprachauswahl',
+        fullVersion: 'Vollversion',
+        restrictedVersion: 'Eingeschränkte Version',
+        donationTitleText: 'Projekt unterstützen',
+        donationBody: '<p>🇩🇪 Die Werkzeuge, mit denen diese App entwickelt wurde, <b>sind nicht kostenlos</b>. Wenn sie dir nützlich ist, denke bitte über eine Spende nach. Ohne Spende erlaubt jede Sitzung <b>3 Importe</b> und <b>3 Exporte</b>. Eine Spende entfernt dieses Fenster und <b>alle Limits</b> dauerhaft auf diesem Computer.</p>',
+        donationImportant: 'WICHTIG: Füge diesen Code in die Nachricht deiner Spende ein',
+        donationDonateButton: '☕ Spenden',
+        donationCheckButton: 'Ich habe gespendet',
+        donationManualToggle: 'Hast du einen Code?',
+        donationSupportId: 'Support-ID (sende sie, wenn du einen Code brauchst):',
+        donationCodePlaceholder: 'Code hier einfügen',
+        donationApplyButton: 'Anwenden',
+        donationCloseTitle: 'Schließen',
+        donationCopyTitle: 'Kopieren',
+        donationCountdown: 'Du kannst die App in <span class="countdown-num">{s}</span> s verwenden',
+        donationVerified: 'Spende verifiziert! Danke 💚',
+        donationChecking: 'Wird geprüft...',
+        donationNotFound: 'Deine Spende wurde noch nicht gefunden. Warte nach der Spende ein paar Sekunden und versuche es erneut.',
+        donationNotFoundHint: 'Wenn es nicht innerhalb von 1 Minute aktiviert wird, klicke auf "Hast du einen Code?", kopiere die Support-ID und sende sie per privater Nachricht, um einen weiteren Code zu erhalten.',
+        donationApplyingCode: 'Code wird angewendet...',
+        donationInvalidCode: 'Code ist für diesen Computer nicht gültig.',
+        helpTitle: 'Hilfe — Tonex Loader',
+    },
+});
+
+const COMPLETE_I18N = {
+    gl: {
+        subtitle: 'Tonex One e Tonex Pedal',
+        btnRefresh: '⟳ Actualizar',
+        btnOpen: '📂 Abrir .txp',
+        btnBackup: '💾 Backup',
+        btnHelp: '❔ Axuda',
+        btnDonate: '☕ Doar',
+        donateTitle: 'Apoia o proxecto en Ko-fi',
+        portTitle: 'Porto COM do pedal',
+        pollTitle: 'Seguir o footswitch en directo',
+        thSlot: 'Slot',
+        thName: 'Nome',
+        thCharacter: 'Carácter',
+        thTone: 'Modelo',
+        thStomp: 'Stomp',
+        thAmp: 'Amplificador',
+        thCab: 'Pantalla',
+        thAssigned: 'Asignado',
+        emptyRow: 'Conecta o pedal e preme <b>Actualizar</b>.',
+        statusReady: 'Listo. Conecta un pedal Tonex.',
+        noPedal: 'Non se detecta ningún pedal Tonex por USB.',
+        pedalDetected: 'Pedal detectado en {port}.',
+        pickPortHint: 'Non se detectou por USB. Escolle o porto COM do pedal e preme Actualizar.',
+        errPorts: 'Erro ao listar portos: {e}',
+        reading: 'Lendo o pedal…',
+        reloadProgressTitle: 'Recargando…',
+        readDone: 'Lidos {n} slots desde {port}.',
+        readErr: 'Non se puido ler o pedal: {e}',
+        genericErr: 'Erro: {e}',
+        active: '● ACTIVO',
+        ampLabel: 'Amplificador',
+        cabLabel: 'Pantalla',
+        ctxDetails: '🔍 Ver detalles',
+        ctxUpload: '⬆ Subir .txp aquí…',
+        ctxExport: 'Exportar .txp',
+        ctxExportBcho: 'Exportar .txp con BCho',
+        ctxLoadA: '🎚 Cargar en A',
+        ctxLoadB: '🎚 Cargar en B',
+        ctxLoadStomp: '🎚 Cargar en Stomp',
+        ctxColor: '🎨 Cambiar cor…',
+        mEffects: 'Efectos',
+        mGate: 'Noise Gate',
+        mComp: 'Compresor',
+        mMod: 'Modulación',
+        mDelay: 'Delay',
+        mReverb: 'Reverb',
+        mAssignedTo: 'Asignado a',
+        mColor: 'Cor do LED',
+        close: 'Pechar',
+        cancel: 'Cancelar',
+        slotWord: 'Slot',
+        loading: 'Cargando slot {n} en {pos}…',
+        loaded: 'Slot {n} cargado en {pos}.',
+        selected: 'Preset {n} activo no pedal: {name}',
+        selectErr: 'Non se puido cambiar o preset: {e}',
+        assignErr: 'Non se puido asignar: {e}',
+        colorTitle: 'Cor do slot {n}',
+        colorSub: 'Escolle a cor do LED para este preset.',
+        colorChanging: 'Cambiando a cor do slot {n}…',
+        colorDone: 'Cor do slot {n} actualizada.',
+        colorErr: 'Non se puido cambiar a cor: {e}',
+        dlgErr: 'Erro ao abrir o diálogo: {e}',
+        uploading: 'Subindo {file} ao slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importando presets…',
+        noAck: 'Sen ACK ao subir {file} (pode que se aplicase igualmente).',
+        uploadFileErr: 'Erro ao subir {file}: {e}',
+        uploadDone: 'Subida completada: {ok}/{total}.',
+        exporting: 'Exportando slot {n} a .txp...',
+        exportProgressTitle: 'Exportando preset…',
+        exportMultiProgressTitle: 'Exportando presets…',
+        exportingMulti: 'Exportando {total} presets…',
+        exportRunning: 'Exportando… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp exportados en {dir}',
+        exportMultiDoneFailed: 'Exportados {ok}/{total} .txp ({fail} con erro).',
+        ctxSelCount: '{n} slots seleccionados',
+        ctxExportMulti: 'Exportar {n} .txp',
+        ctxExportMultiBcho: 'Exportar {n} .txp con BCho',
+        exportSaved: '.txp exportado: {path}',
+        exportErr: 'Non se puido exportar .txp: {e}',
+        btnBackupTitle: 'Backup completo do pedal a un .zip restaurable',
+        btnRestore: '♻ Restaurar',
+        btnRestoreTitle: 'Restaurar un backup .zip no pedal',
+        backupFirst: 'Conecta primeiro o pedal.',
+        backupRunning: 'Creando backup… {done}/{total} slots',
+        backupProgressTitle: 'Creando backup…',
+        backupSaved: 'Backup gardado: {path}',
+        backupErr: 'Erro ao gardar o backup: {e}',
+        restoreRunning: 'Restaurando… {done}/{total}',
+        restoreProgressTitle: 'Restaurando backup…',
+        restoreDone: 'Restauración completada: {ok}/{total} slots.',
+        restoreDoneFailed: 'Restauración: {ok}/{total} slots ({fail} con erro).',
+        restoreErr: 'Erro ao restaurar: {e}',
+        pollErr: 'Polling: {e}',
+        pollStopped: 'Polling detido: {msg}',
+        droppedToast: '{n} .txp recibido(s). Escolle o slot de destino.',
+        onlyTxp: 'Só se poden subir ficheiros .txp.',
+        overflowWarn: '{n} non caben por debaixo e omitíronse.',
+        pickTitleMulti: 'Subir {n} presets',
+        pickTitleOne: 'Subir preset',
+        pickSubMulti: 'Subiranse a slots consecutivos desde o que escollas.',
+        pickSubOne: 'Escolle o slot de destino.',
+        dropHint: 'Solta os <b>.txp</b> aquí para subilos',
+        offlineWarning: 'Non se pode conectar co servidor de control. Modo sen conexión: sen pantalla de doazón e con límite de 1 importación e 1 exportación por sesión.',
+        offlineImportLimit: 'Modo sen conexión: límite de 1 importación por sesión.',
+        offlineExportLimit: 'Modo sen conexión: límite de 1 exportación por sesión.',
+        reminderMsg: 'Lembra que por unha contribución mínima de 2 euros podes ter a versión completa. ;-)',
+        reminderCloseIn: 'Pechar en {s} s',
+        reminderCloseBtn: 'Pechar',
+        reminderCanClose: 'Xa podes pechar esta xanela',
+        supportProject: '☕ Apoia o proxecto',
+        supportProjectTitle: 'Apoia o proxecto',
+        donateAndActivate: '☕ Doa e Activa',
+        donateAndActivateTitle: 'Doa e Activa',
+        languageSelectorLabel: 'Selector de idioma',
+        fullVersion: 'Versión Completa',
+        restrictedVersion: 'Versión Restrinxida',
+        donationTitleText: 'Apoia o proxecto',
+        donationBody: '<p>As ferramentas usadas para desenvolver esta app <b>non son gratuítas</b>. Se che resulta útil, considera facer unha doazón. Sen doazón, cada sesión permite <b>3 importacións</b> e <b>3 exportacións</b>. Ao doar desaparecen esta pantalla e <b>todos os límites</b>, para sempre, neste equipo.</p>',
+        donationImportant: 'IMPORTANTE: Pega este código na mensaxe da túa doazón',
+        donationDonateButton: '☕ Doar',
+        donationCheckButton: 'Xa doei',
+        donationManualToggle: 'Tes un código?',
+        donationSupportId: 'ID de soporte (envíao se precisas un código):',
+        donationCodePlaceholder: 'Pega aquí o teu código',
+        donationApplyButton: 'Aplicar',
+        donationCloseTitle: 'Pechar',
+        donationCopyTitle: 'Copiar',
+        donationCountdown: 'Poderás usar a app en <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Doazón verificada! Grazas 💚',
+        donationChecking: 'Comprobando...',
+        donationNotFound: 'Aínda non consta a túa doazón. Agarda uns segundos despois de doar e téntao de novo.',
+        donationNotFoundHint: 'Se en 1 minuto non se activa, preme "Tes un código?", copia o ID de soporte e envíao por mensaxe privada para recibir outro código.',
+        donationApplyingCode: 'Aplicando código...',
+        donationInvalidCode: 'Código non válido para este equipo.',
+        pConnecting: 'Conectando co pedal…',
+        pReadingSlot: 'Lendo slot {n}/{total}…',
+        pGenerating: 'Xerando datos de subida…',
+        pSendingSetup: 'Enviando configuración…',
+        pUploadingSlot: 'Subindo ao slot {n}…',
+        pReadingUpdated: 'Lendo o slot actualizado…',
+        pLoadingInto: 'Cargando en {pos}…',
+        pExporting: 'Exportando slot {n}/{total}…',
+        pRestoringSlot: 'Restaurando slot {n}/{total}…',
+        pRestoringColors: 'Restaurando cores…',
+        pRestoringAssign: 'Restaurando asignacións…',
+        helpTitle: 'Axuda — Tonex Loader',
+    },
+    pt: {
+        subtitle: 'Tonex One e Tonex Pedal',
+        btnRefresh: '⟳ Atualizar',
+        btnOpen: '📂 Abrir .txp',
+        btnBackup: '💾 Backup',
+        btnHelp: '❔ Ajuda',
+        btnDonate: '☕ Doar',
+        donateTitle: 'Apoie o projeto no Ko-fi',
+        portTitle: 'Porta COM do pedal',
+        pollTitle: 'Seguir o footswitch ao vivo',
+        thSlot: 'Slot',
+        thName: 'Nome',
+        thCharacter: 'Caráter',
+        thTone: 'Modelo',
+        thStomp: 'Stomp',
+        thAmp: 'Amplificador',
+        thCab: 'Caixa',
+        thAssigned: 'Atribuído',
+        emptyRow: 'Conecte o pedal e clique em <b>Atualizar</b>.',
+        statusReady: 'Pronto. Conecte um pedal Tonex.',
+        noPedal: 'Nenhum pedal Tonex detectado por USB.',
+        pedalDetected: 'Pedal detectado em {port}.',
+        pickPortHint: 'Não foi detectado por USB. Escolha a porta COM do pedal e clique em Atualizar.',
+        errPorts: 'Erro ao listar portas: {e}',
+        reading: 'Lendo o pedal…',
+        reloadProgressTitle: 'Recarregando…',
+        readDone: '{n} slots lidos de {port}.',
+        readErr: 'Não foi possível ler o pedal: {e}',
+        genericErr: 'Erro: {e}',
+        active: '● ATIVO',
+        ampLabel: 'Amplificador',
+        cabLabel: 'Caixa',
+        ctxDetails: '🔍 Ver detalhes',
+        ctxUpload: '⬆ Enviar .txp aqui…',
+        ctxExport: 'Exportar .txp',
+        ctxExportBcho: 'Exportar .txp com BCho',
+        ctxLoadA: '🎚 Carregar em A',
+        ctxLoadB: '🎚 Carregar em B',
+        ctxLoadStomp: '🎚 Carregar em Stomp',
+        ctxColor: '🎨 Alterar cor…',
+        mEffects: 'Efeitos',
+        mGate: 'Noise Gate',
+        mComp: 'Compressor',
+        mMod: 'Modulação',
+        mDelay: 'Delay',
+        mReverb: 'Reverb',
+        mAssignedTo: 'Atribuído a',
+        mColor: 'Cor do LED',
+        close: 'Fechar',
+        cancel: 'Cancelar',
+        slotWord: 'Slot',
+        loading: 'Carregando slot {n} em {pos}…',
+        loaded: 'Slot {n} carregado em {pos}.',
+        selected: 'Preset {n} ativo no pedal: {name}',
+        selectErr: 'Não foi possível alterar o preset: {e}',
+        assignErr: 'Não foi possível atribuir: {e}',
+        colorTitle: 'Cor do slot {n}',
+        colorSub: 'Escolha a cor do LED para este preset.',
+        colorChanging: 'Alterando a cor do slot {n}…',
+        colorDone: 'Cor do slot {n} atualizada.',
+        colorErr: 'Não foi possível alterar a cor: {e}',
+        dlgErr: 'Erro ao abrir diálogo: {e}',
+        uploading: 'Enviando {file} para o slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importando presets…',
+        noAck: 'Sem ACK ao enviar {file} (pode ter sido aplicado mesmo assim).',
+        uploadFileErr: 'Erro ao enviar {file}: {e}',
+        uploadDone: 'Envio concluído: {ok}/{total}.',
+        exporting: 'Exportando slot {n} para .txp...',
+        exportProgressTitle: 'Exportando preset…',
+        exportMultiProgressTitle: 'Exportando presets…',
+        exportingMulti: 'Exportando {total} presets…',
+        exportRunning: 'Exportando… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp exportados para {dir}',
+        exportMultiDoneFailed: 'Exportados {ok}/{total} .txp ({fail} com erro).',
+        ctxSelCount: '{n} slots selecionados',
+        ctxExportMulti: 'Exportar {n} .txp',
+        ctxExportMultiBcho: 'Exportar {n} .txp com BCho',
+        exportSaved: '.txp exportado: {path}',
+        exportErr: 'Não foi possível exportar .txp: {e}',
+        btnBackupTitle: 'Backup completo do pedal para um .zip restaurável',
+        btnRestore: '♻ Restaurar',
+        btnRestoreTitle: 'Restaurar um backup .zip no pedal',
+        backupFirst: 'Conecte o pedal primeiro.',
+        backupRunning: 'Criando backup… {done}/{total} slots',
+        backupProgressTitle: 'Criando backup…',
+        backupSaved: 'Backup salvo: {path}',
+        backupErr: 'Erro ao salvar backup: {e}',
+        restoreRunning: 'Restaurando… {done}/{total}',
+        restoreProgressTitle: 'Restaurando backup…',
+        restoreDone: 'Restauração concluída: {ok}/{total} slots.',
+        restoreDoneFailed: 'Restauração: {ok}/{total} slots ({fail} com erro).',
+        restoreErr: 'Erro ao restaurar: {e}',
+        pollErr: 'Polling: {e}',
+        pollStopped: 'Polling interrompido: {msg}',
+        droppedToast: '{n} .txp recebido(s). Escolha o slot de destino.',
+        onlyTxp: 'Só é possível enviar arquivos .txp.',
+        overflowWarn: '{n} não cabem abaixo e foram ignorados.',
+        pickTitleMulti: 'Enviar {n} presets',
+        pickTitleOne: 'Enviar preset',
+        pickSubMulti: 'Eles serão enviados para slots consecutivos a partir do escolhido.',
+        pickSubOne: 'Escolha o slot de destino.',
+        dropHint: 'Solte os <b>.txp</b> aqui para enviar',
+        offlineWarning: 'Não foi possível conectar ao servidor de controle. Modo offline: sem tela de doação e limitado a 1 importação e 1 exportação por sessão.',
+        offlineImportLimit: 'Modo offline: limite de 1 importação por sessão.',
+        offlineExportLimit: 'Modo offline: limite de 1 exportação por sessão.',
+        reminderMsg: 'Lembre-se: com uma contribuição mínima de 2 euros você pode ter a versão completa. ;-)',
+        reminderCloseIn: 'Fechar em {s} s',
+        reminderCloseBtn: 'Fechar',
+        reminderCanClose: 'Você já pode fechar esta janela',
+        supportProject: '☕ Apoie o projeto',
+        supportProjectTitle: 'Apoie o projeto',
+        donateAndActivate: '☕ Doe e Ative',
+        donateAndActivateTitle: 'Doe e Ative',
+        languageSelectorLabel: 'Seletor de idioma',
+        fullVersion: 'Versão Completa',
+        restrictedVersion: 'Versão Restrita',
+        donationTitleText: 'Apoie o projeto',
+        donationBody: '<p>🇵🇹 🇧🇷 As ferramentas usadas para criar este app <b>não são gratuitas</b>. Se ele for útil para você, considere fazer uma doação. Sem doação, cada sessão permite <b>3 importações</b> e <b>3 exportações</b>. Ao doar, esta tela e <b>todos os limites</b> desaparecem para sempre neste computador.</p>',
+        donationImportant: 'IMPORTANTE: Cole este código na mensagem da sua doação',
+        donationDonateButton: '☕ Doar',
+        donationCheckButton: 'Já doei',
+        donationManualToggle: 'Tem um código?',
+        donationSupportId: 'ID de suporte (envie se precisar de um código):',
+        donationCodePlaceholder: 'Cole seu código aqui',
+        donationApplyButton: 'Aplicar',
+        donationCloseTitle: 'Fechar',
+        donationCopyTitle: 'Copiar',
+        donationCountdown: 'Você poderá usar o app em <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Doação verificada! Obrigado 💚',
+        donationChecking: 'Verificando...',
+        donationNotFound: 'Sua doação ainda não aparece. Aguarde alguns segundos depois de doar e tente novamente.',
+        donationNotFoundHint: 'Se em 1 minuto não for ativado, clique em "Tem um código?", copie o ID de suporte e envie por mensagem privada para receber outro código.',
+        donationApplyingCode: 'Aplicando código...',
+        donationInvalidCode: 'Código não válido para este computador.',
+        pConnecting: 'Conectando ao pedal…',
+        pReadingSlot: 'Lendo slot {n}/{total}…',
+        pGenerating: 'Gerando dados de envio…',
+        pSendingSetup: 'Enviando configuração…',
+        pUploadingSlot: 'Enviando para o slot {n}…',
+        pReadingUpdated: 'Lendo o slot atualizado…',
+        pLoadingInto: 'Carregando em {pos}…',
+        pExporting: 'Exportando slot {n}/{total}…',
+        pRestoringSlot: 'Restaurando slot {n}/{total}…',
+        pRestoringColors: 'Restaurando cores…',
+        pRestoringAssign: 'Restaurando atribuições…',
+        helpTitle: 'Ajuda — Tonex Loader',
+    },
+    it: {
+        subtitle: 'Tonex One e Tonex Pedal',
+        btnRefresh: '⟳ Aggiorna',
+        btnOpen: '📂 Apri .txp',
+        btnBackup: '💾 Backup',
+        btnHelp: '❔ Aiuto',
+        btnDonate: '☕ Dona',
+        donateTitle: 'Sostieni il progetto su Ko-fi',
+        portTitle: 'Porta COM del pedale',
+        pollTitle: 'Segui il footswitch in tempo reale',
+        thSlot: 'Slot',
+        thName: 'Nome',
+        thCharacter: 'Carattere',
+        thTone: 'Modello',
+        thStomp: 'Stomp',
+        thAmp: 'Amp',
+        thCab: 'Cab',
+        thAssigned: 'Assegnato',
+        emptyRow: 'Collega il pedale e premi <b>Aggiorna</b>.',
+        statusReady: 'Pronto. Collega un pedale Tonex.',
+        noPedal: 'Nessun pedale Tonex rilevato via USB.',
+        pedalDetected: 'Pedale rilevato su {port}.',
+        pickPortHint: 'Non rilevato via USB. Scegli la porta COM del pedale e premi Aggiorna.',
+        errPorts: 'Errore nell’elenco delle porte: {e}',
+        reading: 'Lettura del pedale…',
+        reloadProgressTitle: 'Ricaricamento…',
+        readDone: 'Letti {n} slot da {port}.',
+        readErr: 'Impossibile leggere il pedale: {e}',
+        genericErr: 'Errore: {e}',
+        active: '● ATTIVO',
+        ampLabel: 'Amp',
+        cabLabel: 'Cab',
+        ctxDetails: '🔍 Vedi dettagli',
+        ctxUpload: '⬆ Carica .txp qui…',
+        ctxExport: 'Esporta .txp',
+        ctxExportBcho: 'Esporta .txp con BCho',
+        ctxLoadA: '🎚 Carica in A',
+        ctxLoadB: '🎚 Carica in B',
+        ctxLoadStomp: '🎚 Carica in Stomp',
+        ctxColor: '🎨 Cambia colore…',
+        mEffects: 'Effetti',
+        mGate: 'Noise Gate',
+        mComp: 'Compressor',
+        mMod: 'Modulation',
+        mDelay: 'Delay',
+        mReverb: 'Reverb',
+        mAssignedTo: 'Assegnato a',
+        mColor: 'Colore LED',
+        close: 'Chiudi',
+        cancel: 'Annulla',
+        slotWord: 'Slot',
+        loading: 'Caricamento slot {n} in {pos}…',
+        loaded: 'Slot {n} caricato in {pos}.',
+        selected: 'Preset {n} attivo sul pedale: {name}',
+        selectErr: 'Impossibile cambiare preset: {e}',
+        assignErr: 'Impossibile assegnare: {e}',
+        colorTitle: 'Colore dello slot {n}',
+        colorSub: 'Scegli il colore del LED per questo preset.',
+        colorChanging: 'Modifica colore dello slot {n}…',
+        colorDone: 'Colore dello slot {n} aggiornato.',
+        colorErr: 'Impossibile cambiare il colore: {e}',
+        dlgErr: 'Errore nell’apertura della finestra: {e}',
+        uploading: 'Caricamento di {file} nello slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importazione preset…',
+        noAck: 'Nessun ACK durante il caricamento di {file} (potrebbe essere stato applicato).',
+        uploadFileErr: 'Errore nel caricamento di {file}: {e}',
+        uploadDone: 'Caricamento completato: {ok}/{total}.',
+        exporting: 'Esportazione slot {n} in .txp...',
+        exportProgressTitle: 'Esportazione preset…',
+        exportMultiProgressTitle: 'Esportazione preset…',
+        exportingMulti: 'Esportazione di {total} preset…',
+        exportRunning: 'Esportazione… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp esportati in {dir}',
+        exportMultiDoneFailed: 'Esportati {ok}/{total} .txp ({fail} con errore).',
+        ctxSelCount: '{n} slot selezionati',
+        ctxExportMulti: 'Esporta {n} .txp',
+        ctxExportMultiBcho: 'Esporta {n} .txp con BCho',
+        exportSaved: '.txp esportato: {path}',
+        exportErr: 'Impossibile esportare .txp: {e}',
+        btnBackupTitle: 'Backup completo del pedale in un .zip ripristinabile',
+        btnRestore: '♻ Ripristina',
+        btnRestoreTitle: 'Ripristina un backup .zip sul pedale',
+        backupFirst: 'Collega prima il pedale.',
+        backupRunning: 'Creazione backup… {done}/{total} slot',
+        backupProgressTitle: 'Creazione backup…',
+        backupSaved: 'Backup salvato: {path}',
+        backupErr: 'Errore nel salvataggio del backup: {e}',
+        restoreRunning: 'Ripristino… {done}/{total}',
+        restoreProgressTitle: 'Ripristino backup…',
+        restoreDone: 'Ripristino completato: {ok}/{total} slot.',
+        restoreDoneFailed: 'Ripristino: {ok}/{total} slot ({fail} con errore).',
+        restoreErr: 'Errore nel ripristino: {e}',
+        pollErr: 'Polling: {e}',
+        pollStopped: 'Polling interrotto: {msg}',
+        droppedToast: '{n} .txp ricevuti. Scegli lo slot di destinazione.',
+        onlyTxp: 'Si possono caricare solo file .txp.',
+        overflowWarn: '{n} non entrano negli slot successivi e sono stati ignorati.',
+        pickTitleMulti: 'Carica {n} preset',
+        pickTitleOne: 'Carica preset',
+        pickSubMulti: 'Verranno caricati in slot consecutivi a partire da quello scelto.',
+        pickSubOne: 'Scegli lo slot di destinazione.',
+        dropHint: 'Rilascia qui i file <b>.txp</b> per caricarli',
+        offlineWarning: 'Impossibile raggiungere il server di controllo. Modalità offline: nessuna schermata di donazione e limite di 1 importazione e 1 esportazione per sessione.',
+        offlineImportLimit: 'Modalità offline: limite di 1 importazione per sessione.',
+        offlineExportLimit: 'Modalità offline: limite di 1 esportazione per sessione.',
+        reminderMsg: 'Ricorda che con un contributo minimo di 2 euro puoi avere la versione completa. ;-)',
+        reminderCloseIn: 'Chiudi tra {s} s',
+        reminderCloseBtn: 'Chiudi',
+        reminderCanClose: 'Ora puoi chiudere questa finestra',
+        supportProject: '☕ Sostieni il progetto',
+        supportProjectTitle: 'Sostieni il progetto',
+        donateAndActivate: '☕ Dona e Attiva',
+        donateAndActivateTitle: 'Dona e Attiva',
+        languageSelectorLabel: 'Selettore lingua',
+        fullVersion: 'Versione Completa',
+        restrictedVersion: 'Versione Limitata',
+        donationTitleText: 'Sostieni il progetto',
+        donationBody: '<p>🇮🇹 Gli strumenti usati per sviluppare questa app <b>non sono gratuiti</b>. Se ti è utile, valuta una donazione. Senza donazione, ogni sessione permette <b>3 importazioni</b> e <b>3 esportazioni</b>. Con una donazione questa schermata e <b>tutti i limiti</b> spariscono per sempre su questo computer.</p>',
+        donationImportant: 'IMPORTANTE: incolla questo codice nel messaggio della tua donazione',
+        donationDonateButton: '☕ Dona',
+        donationCheckButton: 'Ho donato',
+        donationManualToggle: 'Hai un codice?',
+        donationSupportId: 'ID di supporto (invialo se ti serve un codice):',
+        donationCodePlaceholder: 'Incolla qui il tuo codice',
+        donationApplyButton: 'Applica',
+        donationCloseTitle: 'Chiudi',
+        donationCopyTitle: 'Copia',
+        donationCountdown: 'Potrai usare l’app tra <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Donazione verificata! Grazie 💚',
+        donationChecking: 'Verifica in corso...',
+        donationNotFound: 'La tua donazione non risulta ancora. Attendi qualche secondo dopo aver donato e riprova.',
+        donationNotFoundHint: 'Se non si attiva entro 1 minuto, fai clic su "Hai un codice?", copia l’ID di supporto e invialo tramite messaggio privato per ricevere un altro codice.',
+        donationApplyingCode: 'Applicazione del codice...',
+        donationInvalidCode: 'Codice non valido per questo computer.',
+        pConnecting: 'Connessione al pedale…',
+        pReadingSlot: 'Lettura slot {n}/{total}…',
+        pGenerating: 'Generazione dati di caricamento…',
+        pSendingSetup: 'Invio configurazione…',
+        pUploadingSlot: 'Caricamento nello slot {n}…',
+        pReadingUpdated: 'Lettura dello slot aggiornato…',
+        pLoadingInto: 'Caricamento in {pos}…',
+        pExporting: 'Esportazione slot {n}/{total}…',
+        pRestoringSlot: 'Ripristino slot {n}/{total}…',
+        pRestoringColors: 'Ripristino colori…',
+        pRestoringAssign: 'Ripristino assegnazioni…',
+        helpTitle: 'Aiuto — Tonex Loader',
+    },
+    fr: {
+        subtitle: 'Tonex One et Tonex Pedal',
+        btnRefresh: '⟳ Actualiser',
+        btnOpen: '📂 Ouvrir .txp',
+        btnBackup: '💾 Sauvegarde',
+        btnHelp: '❔ Aide',
+        btnDonate: '☕ Faire un don',
+        donateTitle: 'Soutenir le projet sur Ko-fi',
+        portTitle: 'Port COM de la pédale',
+        pollTitle: 'Suivre le footswitch en direct',
+        thSlot: 'Slot',
+        thName: 'Nom',
+        thCharacter: 'Caractère',
+        thTone: 'Modèle',
+        thStomp: 'Stomp',
+        thAmp: 'Ampli',
+        thCab: 'Baffle',
+        thAssigned: 'Assigné',
+        emptyRow: 'Connectez la pédale et cliquez sur <b>Actualiser</b>.',
+        statusReady: 'Prêt. Connectez une pédale Tonex.',
+        noPedal: 'Aucune pédale Tonex détectée par USB.',
+        pedalDetected: 'Pédale détectée sur {port}.',
+        pickPortHint: 'Non détectée par USB. Choisissez le port COM de la pédale et cliquez sur Actualiser.',
+        errPorts: 'Erreur lors de la liste des ports : {e}',
+        reading: 'Lecture de la pédale…',
+        reloadProgressTitle: 'Rechargement…',
+        readDone: '{n} slots lus depuis {port}.',
+        readErr: 'Impossible de lire la pédale : {e}',
+        genericErr: 'Erreur : {e}',
+        active: '● ACTIF',
+        ampLabel: 'Ampli',
+        cabLabel: 'Baffle',
+        ctxDetails: '🔍 Voir les détails',
+        ctxUpload: '⬆ Charger .txp ici…',
+        ctxExport: 'Exporter .txp',
+        ctxExportBcho: 'Exporter .txp avec BCho',
+        ctxLoadA: '🎚 Charger dans A',
+        ctxLoadB: '🎚 Charger dans B',
+        ctxLoadStomp: '🎚 Charger dans Stomp',
+        ctxColor: '🎨 Changer la couleur…',
+        mEffects: 'Effets',
+        mGate: 'Noise Gate',
+        mComp: 'Compressor',
+        mMod: 'Modulation',
+        mDelay: 'Delay',
+        mReverb: 'Reverb',
+        mAssignedTo: 'Assigné à',
+        mColor: 'Couleur LED',
+        close: 'Fermer',
+        cancel: 'Annuler',
+        slotWord: 'Slot',
+        loading: 'Chargement du slot {n} dans {pos}…',
+        loaded: 'Slot {n} chargé dans {pos}.',
+        selected: 'Preset {n} actif sur la pédale : {name}',
+        selectErr: 'Impossible de changer le preset : {e}',
+        assignErr: 'Impossible d’assigner : {e}',
+        colorTitle: 'Couleur du slot {n}',
+        colorSub: 'Choisissez la couleur de LED pour ce preset.',
+        colorChanging: 'Changement de la couleur du slot {n}…',
+        colorDone: 'Couleur du slot {n} mise à jour.',
+        colorErr: 'Impossible de changer la couleur : {e}',
+        dlgErr: 'Erreur lors de l’ouverture de la boîte de dialogue : {e}',
+        uploading: 'Chargement de {file} dans le slot {n}… ({i}/{total})',
+        importProgressTitle: 'Importation des presets…',
+        noAck: 'Pas d’ACK lors du chargement de {file} (il a peut-être été appliqué).',
+        uploadFileErr: 'Erreur lors du chargement de {file} : {e}',
+        uploadDone: 'Chargement terminé : {ok}/{total}.',
+        exporting: 'Export du slot {n} en .txp...',
+        exportProgressTitle: 'Export du preset…',
+        exportMultiProgressTitle: 'Export des presets…',
+        exportingMulti: 'Export de {total} presets…',
+        exportRunning: 'Export… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp exportés vers {dir}',
+        exportMultiDoneFailed: '{ok}/{total} .txp exportés ({fail} avec erreur).',
+        ctxSelCount: '{n} slots sélectionnés',
+        ctxExportMulti: 'Exporter {n} .txp',
+        ctxExportMultiBcho: 'Exporter {n} .txp avec BCho',
+        exportSaved: '.txp exporté : {path}',
+        exportErr: 'Impossible d’exporter .txp : {e}',
+        btnBackupTitle: 'Sauvegarde complète de la pédale dans un .zip restaurable',
+        btnRestore: '♻ Restaurer',
+        btnRestoreTitle: 'Restaurer une sauvegarde .zip sur la pédale',
+        backupFirst: 'Connectez d’abord la pédale.',
+        backupRunning: 'Création de la sauvegarde… {done}/{total} slots',
+        backupProgressTitle: 'Création de la sauvegarde…',
+        backupSaved: 'Sauvegarde enregistrée : {path}',
+        backupErr: 'Erreur lors de l’enregistrement de la sauvegarde : {e}',
+        restoreRunning: 'Restauration… {done}/{total}',
+        restoreProgressTitle: 'Restauration de la sauvegarde…',
+        restoreDone: 'Restauration terminée : {ok}/{total} slots.',
+        restoreDoneFailed: 'Restauration : {ok}/{total} slots ({fail} avec erreur).',
+        restoreErr: 'Erreur lors de la restauration : {e}',
+        pollErr: 'Polling : {e}',
+        pollStopped: 'Polling arrêté : {msg}',
+        droppedToast: '{n} .txp reçu(s). Choisissez le slot de destination.',
+        onlyTxp: 'Seuls les fichiers .txp peuvent être chargés.',
+        overflowWarn: '{n} ne tiennent pas dans les slots suivants et ont été ignorés.',
+        pickTitleMulti: 'Charger {n} presets',
+        pickTitleOne: 'Charger un preset',
+        pickSubMulti: 'Ils seront chargés dans des slots consécutifs à partir de celui choisi.',
+        pickSubOne: 'Choisissez le slot de destination.',
+        dropHint: 'Déposez les fichiers <b>.txp</b> ici pour les charger',
+        offlineWarning: 'Impossible de joindre le serveur de contrôle. Mode hors ligne : pas d’écran de don, limite de 1 importation et 1 exportation par session.',
+        offlineImportLimit: 'Mode hors ligne : limite de 1 importation par session.',
+        offlineExportLimit: 'Mode hors ligne : limite de 1 exportation par session.',
+        reminderMsg: 'Rappel : avec une contribution minimale de 2 euros, vous pouvez obtenir la version complète. ;-)',
+        reminderCloseIn: 'Fermer dans {s} s',
+        reminderCloseBtn: 'Fermer',
+        reminderCanClose: 'Vous pouvez maintenant fermer cette fenêtre',
+        supportProject: '☕ Soutenez le projet',
+        supportProjectTitle: 'Soutenez le projet',
+        donateAndActivate: '☕ Donnez et Activez',
+        donateAndActivateTitle: 'Donnez et Activez',
+        languageSelectorLabel: 'Sélecteur de langue',
+        fullVersion: 'Version Complète',
+        restrictedVersion: 'Version Limitée',
+        donationTitleText: 'Soutenir le projet',
+        donationBody: '<p>🇫🇷 Les outils utilisés pour développer cette app <b>ne sont pas gratuits</b>. Si elle vous est utile, pensez à faire un don. Sans don, chaque session permet <b>3 importations</b> et <b>3 exportations</b>. Un don supprime cet écran et <b>toutes les limites</b>, définitivement, sur cet ordinateur.</p>',
+        donationImportant: 'IMPORTANT : collez ce code dans le message de votre don',
+        donationDonateButton: '☕ Faire un don',
+        donationCheckButton: 'J’ai fait un don',
+        donationManualToggle: 'Vous avez un code ?',
+        donationSupportId: 'ID de support (envoyez-le si vous avez besoin d’un code) :',
+        donationCodePlaceholder: 'Collez votre code ici',
+        donationApplyButton: 'Appliquer',
+        donationCloseTitle: 'Fermer',
+        donationCopyTitle: 'Copier',
+        donationCountdown: 'Vous pourrez utiliser l’app dans <span class="countdown-num">{s}</span> s',
+        donationVerified: 'Don vérifié ! Merci 💚',
+        donationChecking: 'Vérification...',
+        donationNotFound: 'Votre don n’apparaît pas encore. Attendez quelques secondes après le don, puis réessayez.',
+        donationNotFoundHint: 'Si l’activation ne se fait pas dans 1 minute, cliquez sur "Vous avez un code ?", copiez l’ID de support et envoyez-le par message privé pour recevoir un autre code.',
+        donationApplyingCode: 'Application du code...',
+        donationInvalidCode: 'Code non valide pour cet ordinateur.',
+        pConnecting: 'Connexion à la pédale…',
+        pReadingSlot: 'Lecture du slot {n}/{total}…',
+        pGenerating: 'Génération des données de chargement…',
+        pSendingSetup: 'Envoi de la configuration…',
+        pUploadingSlot: 'Chargement dans le slot {n}…',
+        pReadingUpdated: 'Lecture du slot mis à jour…',
+        pLoadingInto: 'Chargement dans {pos}…',
+        pExporting: 'Export du slot {n}/{total}…',
+        pRestoringSlot: 'Restauration du slot {n}/{total}…',
+        pRestoringColors: 'Restauration des couleurs…',
+        pRestoringAssign: 'Restauration des assignations…',
+        helpTitle: 'Aide — Tonex Loader',
+    },
+    de: {
+        subtitle: 'Tonex One und Tonex Pedal',
+        btnRefresh: '⟳ Aktualisieren',
+        btnOpen: '📂 .txp öffnen',
+        btnBackup: '💾 Backup',
+        btnHelp: '❔ Hilfe',
+        btnDonate: '☕ Spenden',
+        donateTitle: 'Das Projekt auf Ko-fi unterstützen',
+        portTitle: 'COM-Port des Pedals',
+        pollTitle: 'Footswitch live verfolgen',
+        thSlot: 'Slot',
+        thName: 'Name',
+        thCharacter: 'Charakter',
+        thTone: 'Modell',
+        thStomp: 'Stomp',
+        thAmp: 'Amp',
+        thCab: 'Cab',
+        thAssigned: 'Zugewiesen',
+        emptyRow: 'Pedal anschließen und <b>Aktualisieren</b> klicken.',
+        statusReady: 'Bereit. Schließe ein Tonex-Pedal an.',
+        noPedal: 'Kein Tonex-Pedal per USB erkannt.',
+        pedalDetected: 'Pedal an {port} erkannt.',
+        pickPortHint: 'Nicht per USB erkannt. Wähle den COM-Port des Pedals und klicke auf Aktualisieren.',
+        errPorts: 'Fehler beim Auflisten der Ports: {e}',
+        reading: 'Pedal wird gelesen…',
+        reloadProgressTitle: 'Wird neu geladen…',
+        readDone: '{n} Slots von {port} gelesen.',
+        readErr: 'Pedal konnte nicht gelesen werden: {e}',
+        genericErr: 'Fehler: {e}',
+        active: '● AKTIV',
+        ampLabel: 'Amp',
+        cabLabel: 'Cab',
+        ctxDetails: '🔍 Details anzeigen',
+        ctxUpload: '⬆ .txp hier laden…',
+        ctxExport: '.txp exportieren',
+        ctxExportBcho: '.txp mit BCho exportieren',
+        ctxLoadA: '🎚 In A laden',
+        ctxLoadB: '🎚 In B laden',
+        ctxLoadStomp: '🎚 In Stomp laden',
+        ctxColor: '🎨 Farbe ändern…',
+        mEffects: 'Effekte',
+        mGate: 'Noise Gate',
+        mComp: 'Compressor',
+        mMod: 'Modulation',
+        mDelay: 'Delay',
+        mReverb: 'Reverb',
+        mAssignedTo: 'Zugewiesen an',
+        mColor: 'LED-Farbe',
+        close: 'Schließen',
+        cancel: 'Abbrechen',
+        slotWord: 'Slot',
+        loading: 'Slot {n} wird in {pos} geladen…',
+        loaded: 'Slot {n} in {pos} geladen.',
+        selected: 'Preset {n} aktiv am Pedal: {name}',
+        selectErr: 'Preset konnte nicht gewechselt werden: {e}',
+        assignErr: 'Zuweisung nicht möglich: {e}',
+        colorTitle: 'Farbe für Slot {n}',
+        colorSub: 'Wähle die LED-Farbe für dieses Preset.',
+        colorChanging: 'Farbe von Slot {n} wird geändert…',
+        colorDone: 'Farbe von Slot {n} aktualisiert.',
+        colorErr: 'Farbe konnte nicht geändert werden: {e}',
+        dlgErr: 'Fehler beim Öffnen des Dialogs: {e}',
+        uploading: '{file} wird in Slot {n} geladen… ({i}/{total})',
+        importProgressTitle: 'Presets werden importiert…',
+        noAck: 'Kein ACK beim Laden von {file} (möglicherweise trotzdem angewendet).',
+        uploadFileErr: 'Fehler beim Laden von {file}: {e}',
+        uploadDone: 'Laden abgeschlossen: {ok}/{total}.',
+        exporting: 'Slot {n} wird als .txp exportiert...',
+        exportProgressTitle: 'Preset wird exportiert…',
+        exportMultiProgressTitle: 'Presets werden exportiert…',
+        exportingMulti: '{total} Presets werden exportiert…',
+        exportRunning: 'Export… {done}/{total}',
+        exportMultiDone: '{ok}/{total} .txp nach {dir} exportiert',
+        exportMultiDoneFailed: '{ok}/{total} .txp exportiert ({fail} mit Fehler).',
+        ctxSelCount: '{n} Slots ausgewählt',
+        ctxExportMulti: '{n} .txp exportieren',
+        ctxExportMultiBcho: '{n} .txp mit BCho exportieren',
+        exportSaved: '.txp exportiert: {path}',
+        exportErr: '.txp konnte nicht exportiert werden: {e}',
+        btnBackupTitle: 'Vollständiges Pedal-Backup als wiederherstellbare .zip',
+        btnRestore: '♻ Wiederherstellen',
+        btnRestoreTitle: '.zip-Backup auf dem Pedal wiederherstellen',
+        backupFirst: 'Schließe zuerst das Pedal an.',
+        backupRunning: 'Backup wird erstellt… {done}/{total} Slots',
+        backupProgressTitle: 'Backup wird erstellt…',
+        backupSaved: 'Backup gespeichert: {path}',
+        backupErr: 'Fehler beim Speichern des Backups: {e}',
+        restoreRunning: 'Wiederherstellung… {done}/{total}',
+        restoreProgressTitle: 'Backup wird wiederhergestellt…',
+        restoreDone: 'Wiederherstellung abgeschlossen: {ok}/{total} Slots.',
+        restoreDoneFailed: 'Wiederherstellung: {ok}/{total} Slots ({fail} mit Fehler).',
+        restoreErr: 'Fehler bei der Wiederherstellung: {e}',
+        pollErr: 'Polling: {e}',
+        pollStopped: 'Polling gestoppt: {msg}',
+        droppedToast: '{n} .txp empfangen. Ziel-Slot wählen.',
+        onlyTxp: 'Es können nur .txp-Dateien geladen werden.',
+        overflowWarn: '{n} passen nicht in die folgenden Slots und wurden übersprungen.',
+        pickTitleMulti: '{n} Presets laden',
+        pickTitleOne: 'Preset laden',
+        pickSubMulti: 'Sie werden ab dem gewählten Slot in aufeinanderfolgende Slots geladen.',
+        pickSubOne: 'Ziel-Slot wählen.',
+        dropHint: '<b>.txp</b>-Dateien hier ablegen, um sie zu laden',
+        offlineWarning: 'Der Kontrollserver ist nicht erreichbar. Offline-Modus: kein Spendenfenster, Limit von 1 Import und 1 Export pro Sitzung.',
+        offlineImportLimit: 'Offline-Modus: Limit von 1 Import pro Sitzung.',
+        offlineExportLimit: 'Offline-Modus: Limit von 1 Export pro Sitzung.',
+        reminderMsg: 'Hinweis: Mit einem Mindestbeitrag von 2 Euro erhältst du die Vollversion. ;-)',
+        reminderCloseIn: 'Schließen in {s} s',
+        reminderCloseBtn: 'Schließen',
+        reminderCanClose: 'Du kannst dieses Fenster jetzt schließen',
+        supportProject: '☕ Unterstütze das Projekt',
+        supportProjectTitle: 'Unterstütze das Projekt',
+        donateAndActivate: '☕ Spenden & Aktivieren',
+        donateAndActivateTitle: 'Spenden & Aktivieren',
+        languageSelectorLabel: 'Sprachauswahl',
+        fullVersion: 'Vollversion',
+        restrictedVersion: 'Eingeschränkte Version',
+        donationTitleText: 'Projekt unterstützen',
+        donationBody: '<p>🇩🇪 Die Werkzeuge, mit denen diese App entwickelt wurde, <b>sind nicht kostenlos</b>. Wenn sie dir nützlich ist, denke bitte über eine Spende nach. Ohne Spende erlaubt jede Sitzung <b>3 Importe</b> und <b>3 Exporte</b>. Eine Spende entfernt dieses Fenster und <b>alle Limits</b> dauerhaft auf diesem Computer.</p>',
+        donationImportant: 'WICHTIG: Füge diesen Code in die Nachricht deiner Spende ein',
+        donationDonateButton: '☕ Spenden',
+        donationCheckButton: 'Ich habe gespendet',
+        donationManualToggle: 'Hast du einen Code?',
+        donationSupportId: 'Support-ID (sende sie, wenn du einen Code brauchst):',
+        donationCodePlaceholder: 'Code hier einfügen',
+        donationApplyButton: 'Anwenden',
+        donationCloseTitle: 'Schließen',
+        donationCopyTitle: 'Kopieren',
+        donationCountdown: 'Du kannst die App in <span class="countdown-num">{s}</span> s verwenden',
+        donationVerified: 'Spende verifiziert! Danke 💚',
+        donationChecking: 'Wird geprüft...',
+        donationNotFound: 'Deine Spende wurde noch nicht gefunden. Warte nach der Spende ein paar Sekunden und versuche es erneut.',
+        donationNotFoundHint: 'Wenn es nicht innerhalb von 1 Minute aktiviert wird, klicke auf "Hast du einen Code?", kopiere die Support-ID und sende sie per privater Nachricht, um einen weiteren Code zu erhalten.',
+        donationApplyingCode: 'Code wird angewendet...',
+        donationInvalidCode: 'Code ist für diesen Computer nicht gültig.',
+        pConnecting: 'Verbindung zum Pedal…',
+        pReadingSlot: 'Slot {n}/{total} wird gelesen…',
+        pGenerating: 'Upload-Daten werden erzeugt…',
+        pSendingSetup: 'Konfiguration wird gesendet…',
+        pUploadingSlot: 'Wird in Slot {n} geladen…',
+        pReadingUpdated: 'Aktualisierter Slot wird gelesen…',
+        pLoadingInto: 'Wird in {pos} geladen…',
+        pExporting: 'Slot {n}/{total} wird exportiert…',
+        pRestoringSlot: 'Slot {n}/{total} wird wiederhergestellt…',
+        pRestoringColors: 'Farben werden wiederhergestellt…',
+        pRestoringAssign: 'Zuweisungen werden wiederhergestellt…',
+        helpTitle: 'Hilfe — Tonex Loader',
+    },
+};
+
+for (const code of Object.keys(COMPLETE_I18N)) {
+    Object.assign(I18N[code], COMPLETE_I18N[code]);
+}
+
+let lang = normalizeLang(localStorage.getItem(LANGUAGE_STORAGE_KEY));
 
 function t(key, vars) {
     let s = (I18N[lang] && I18N[lang][key]);
     if (s == null) s = I18N.es[key];
     if (s == null) s = key;
-    if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+    if (vars) {
+        for (const k in vars) {
+            const value = (k === 'e' || k === 'msg') ? translateBackendText(vars[k]) : vars[k];
+            s = s.split('{' + k + '}').join(value);
+        }
+    }
     return s;
+}
+
+const BACKEND_TEXT = {
+    gl: [
+        ['no se detecta un pedal TONEX por USB', 'Non se detecta ningún pedal TONEX por USB'],
+        ['no se pudo abrir', 'Non se puido abrir'],
+        ['puerto cerrado', 'porto pechado'],
+        ['no se recibio ninguna trama completa (timeout)', 'non se recibiu ningunha trama completa (timeout)'],
+        ['no se recibio hello del pedal', 'non se recibiu resposta inicial do pedal'],
+        ['no se recibio estado del pedal', 'non se recibiu o estado do pedal'],
+        ['trama invalida', 'trama non válida'],
+        ['secuencia de escape invalida', 'secuencia de escape non válida'],
+        ['trama demasiado corta para contener el CRC', 'trama demasiado curta para conter o CRC'],
+        ['CRC no coincide', 'o CRC non coincide'],
+        ['slot fuera de rango', 'slot fóra de rango'],
+        ['index fuera de rango', 'índice fóra de rango'],
+        ['preset_index fuera de rango', 'preset_index fóra de rango'],
+        ['slot_name debe ser A, B o C/Stomp', 'slot_name debe ser A, B ou C/Stomp'],
+        ['cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp', 'cambiar o preset activo só está dispoñible no Tonex Pedal; no Tonex One usa A/B/Stomp'],
+        ['el backup es de un Tonex', 'o backup é dun Tonex'],
+        ['pero el pedal conectado es un Tonex', 'pero o pedal conectado é un Tonex'],
+        ['el .txp descifrado es demasiado corto', 'o .txp descifrado é demasiado curto'],
+        ['puede estar corrupto o usar un formato no soportado', 'pode estar corrupto ou usar un formato non compatible'],
+        ['plantilla', 'modelo'],
+        ['solo', 'só'],
+        ['marcadores de parametros', 'marcadores de parámetros'],
+        ['se necesitan', 'necesítanse'],
+        ['no se encontro variante BCho del modelo', 'non se atopou unha variante BCho do modelo'],
+        ['estado del pedal demasiado corto', 'estado do pedal demasiado curto'],
+        ['no se encontro el bloque de colores en el estado', 'non se atopou o bloque de cores no estado'],
+        ['bloque de colores inesperado', 'bloque de cores inesperado'],
+    ],
+    pt: [
+        ['no se detecta un pedal TONEX por USB', 'Nenhum pedal TONEX detectado por USB'],
+        ['no se pudo abrir', 'Não foi possível abrir'],
+        ['puerto cerrado', 'porta fechada'],
+        ['no se recibio ninguna trama completa (timeout)', 'nenhum quadro completo foi recebido (timeout)'],
+        ['no se recibio hello del pedal', 'nenhuma resposta inicial do pedal foi recebida'],
+        ['no se recibio estado del pedal', 'o estado do pedal não foi recebido'],
+        ['trama invalida', 'quadro inválido'],
+        ['secuencia de escape invalida', 'sequência de escape inválida'],
+        ['trama demasiado corta para contener el CRC', 'quadro curto demais para conter o CRC'],
+        ['CRC no coincide', 'CRC não confere'],
+        ['slot fuera de rango', 'slot fora do intervalo'],
+        ['index fuera de rango', 'índice fora do intervalo'],
+        ['preset_index fuera de rango', 'preset_index fora do intervalo'],
+        ['slot_name debe ser A, B o C/Stomp', 'slot_name deve ser A, B ou C/Stomp'],
+        ['cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp', 'alterar o preset ativo só está disponível no Tonex Pedal; no Tonex One use A/B/Stomp'],
+        ['el backup es de un Tonex', 'o backup é de um Tonex'],
+        ['pero el pedal conectado es un Tonex', 'mas o pedal conectado é um Tonex'],
+        ['el .txp descifrado es demasiado corto', 'o .txp descriptografado é curto demais'],
+        ['puede estar corrupto o usar un formato no soportado', 'pode estar corrompido ou usar um formato não compatível'],
+        ['plantilla', 'modelo'],
+        ['solo', 'apenas'],
+        ['marcadores de parametros', 'marcadores de parâmetros'],
+        ['se necesitan', 'são necessários'],
+        ['no se encontro variante BCho del modelo', 'nenhuma variante BCho do modelo foi encontrada'],
+        ['estado del pedal demasiado corto', 'estado do pedal curto demais'],
+        ['no se encontro el bloque de colores en el estado', 'o bloco de cores não foi encontrado no estado'],
+        ['bloque de colores inesperado', 'bloco de cores inesperado'],
+    ],
+    it: [
+        ['no se detecta un pedal TONEX por USB', 'Nessun pedale TONEX rilevato via USB'],
+        ['no se pudo abrir', 'Impossibile aprire'],
+        ['puerto cerrado', 'porta chiusa'],
+        ['no se recibio ninguna trama completa (timeout)', 'nessun frame completo ricevuto (timeout)'],
+        ['no se recibio hello del pedal', 'nessuna risposta iniziale dal pedale'],
+        ['no se recibio estado del pedal', 'stato del pedale non ricevuto'],
+        ['trama invalida', 'frame non valido'],
+        ['secuencia de escape invalida', 'sequenza di escape non valida'],
+        ['trama demasiado corta para contener el CRC', 'frame troppo corto per contenere il CRC'],
+        ['CRC no coincide', 'CRC non corrispondente'],
+        ['slot fuera de rango', 'slot fuori intervallo'],
+        ['index fuera de rango', 'indice fuori intervallo'],
+        ['preset_index fuera de rango', 'preset_index fuori intervallo'],
+        ['slot_name debe ser A, B o C/Stomp', 'slot_name deve essere A, B o C/Stomp'],
+        ['cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp', 'il cambio del preset attivo è disponibile solo su Tonex Pedal; su Tonex One usa A/B/Stomp'],
+        ['el backup es de un Tonex', 'il backup appartiene a un Tonex'],
+        ['pero el pedal conectado es un Tonex', 'ma il pedale collegato è un Tonex'],
+        ['el .txp descifrado es demasiado corto', 'il .txp decifrato è troppo corto'],
+        ['puede estar corrupto o usar un formato no soportado', 'potrebbe essere corrotto o usare un formato non supportato'],
+        ['plantilla', 'modello'],
+        ['solo', 'solo'],
+        ['marcadores de parametros', 'marcatori dei parametri'],
+        ['se necesitan', 'sono necessari'],
+        ['no se encontro variante BCho del modelo', 'non è stata trovata una variante BCho del modello'],
+        ['estado del pedal demasiado corto', 'stato del pedale troppo corto'],
+        ['no se encontro el bloque de colores en el estado', 'blocco colori non trovato nello stato'],
+        ['bloque de colores inesperado', 'blocco colori inatteso'],
+    ],
+    fr: [
+        ['no se detecta un pedal TONEX por USB', 'Aucune pédale TONEX détectée par USB'],
+        ['no se pudo abrir', 'Impossible d’ouvrir'],
+        ['puerto cerrado', 'port fermé'],
+        ['no se recibio ninguna trama completa (timeout)', 'aucune trame complète reçue (timeout)'],
+        ['no se recibio hello del pedal', 'aucune réponse initiale de la pédale'],
+        ['no se recibio estado del pedal', 'état de la pédale non reçu'],
+        ['trama invalida', 'trame non valide'],
+        ['secuencia de escape invalida', 'séquence d’échappement non valide'],
+        ['trama demasiado corta para contener el CRC', 'trame trop courte pour contenir le CRC'],
+        ['CRC no coincide', 'CRC différent'],
+        ['slot fuera de rango', 'slot hors limites'],
+        ['index fuera de rango', 'index hors limites'],
+        ['preset_index fuera de rango', 'preset_index hors limites'],
+        ['slot_name debe ser A, B o C/Stomp', 'slot_name doit être A, B ou C/Stomp'],
+        ['cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp', 'le changement du preset actif est disponible uniquement sur Tonex Pedal ; sur Tonex One, utilisez A/B/Stomp'],
+        ['el backup es de un Tonex', 'la sauvegarde provient d’un Tonex'],
+        ['pero el pedal conectado es un Tonex', 'mais la pédale connectée est un Tonex'],
+        ['el .txp descifrado es demasiado corto', 'le .txp déchiffré est trop court'],
+        ['puede estar corrupto o usar un formato no soportado', 'il peut être corrompu ou utiliser un format non pris en charge'],
+        ['plantilla', 'modèle'],
+        ['solo', 'seulement'],
+        ['marcadores de parametros', 'marqueurs de paramètres'],
+        ['se necesitan', 'sont nécessaires'],
+        ['no se encontro variante BCho del modelo', 'aucune variante BCho du modèle trouvée'],
+        ['estado del pedal demasiado corto', 'état de la pédale trop court'],
+        ['no se encontro el bloque de colores en el estado', 'bloc de couleurs introuvable dans l’état'],
+        ['bloque de colores inesperado', 'bloc de couleurs inattendu'],
+    ],
+    de: [
+        ['no se detecta un pedal TONEX por USB', 'Kein TONEX-Pedal per USB erkannt'],
+        ['no se pudo abrir', 'Konnte nicht geöffnet werden'],
+        ['puerto cerrado', 'Port geschlossen'],
+        ['no se recibio ninguna trama completa (timeout)', 'kein vollständiger Frame empfangen (Timeout)'],
+        ['no se recibio hello del pedal', 'keine erste Antwort vom Pedal empfangen'],
+        ['no se recibio estado del pedal', 'Pedalstatus nicht empfangen'],
+        ['trama invalida', 'ungültiger Frame'],
+        ['secuencia de escape invalida', 'ungültige Escape-Sequenz'],
+        ['trama demasiado corta para contener el CRC', 'Frame zu kurz für CRC'],
+        ['CRC no coincide', 'CRC stimmt nicht überein'],
+        ['slot fuera de rango', 'Slot außerhalb des Bereichs'],
+        ['index fuera de rango', 'Index außerhalb des Bereichs'],
+        ['preset_index fuera de rango', 'preset_index außerhalb des Bereichs'],
+        ['slot_name debe ser A, B o C/Stomp', 'slot_name muss A, B oder C/Stomp sein'],
+        ['cambiar el preset activo solo está disponible en el Tonex Pedal; en el Tonex One usa A/B/Stomp', 'das Wechseln des aktiven Presets ist nur beim Tonex Pedal verfügbar; beim Tonex One A/B/Stomp verwenden'],
+        ['el backup es de un Tonex', 'das Backup stammt von einem Tonex'],
+        ['pero el pedal conectado es un Tonex', 'aber das angeschlossene Pedal ist ein Tonex'],
+        ['el .txp descifrado es demasiado corto', 'die entschlüsselte .txp ist zu kurz'],
+        ['puede estar corrupto o usar un formato no soportado', 'sie ist möglicherweise beschädigt oder verwendet ein nicht unterstütztes Format'],
+        ['plantilla', 'Vorlage'],
+        ['solo', 'nur'],
+        ['marcadores de parametros', 'Parameter-Markierungen'],
+        ['se necesitan', 'werden benötigt'],
+        ['no se encontro variante BCho del modelo', 'keine BCho-Variante des Modells gefunden'],
+        ['estado del pedal demasiado corto', 'Pedalstatus zu kurz'],
+        ['no se encontro el bloque de colores en el estado', 'Farbblock im Status nicht gefunden'],
+        ['bloque de colores inesperado', 'unerwarteter Farbblock'],
+    ],
+};
+
+function translateBackendText(value) {
+    let text = String(value && (value.message || value) || '');
+    const replacements = BACKEND_TEXT[lang] || [];
+    for (const [from, to] of replacements) {
+        text = text.split(from).join(to);
+    }
+    return text;
 }
 
 /* Banderas (SVG inline). */
@@ -244,6 +1458,19 @@ const FLAG_EN = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Eng
     <rect x="9.5" width="5" height="16" fill="#fff"/><rect y="5.5" width="24" height="5" fill="#fff"/>
     <rect x="10.5" width="3" height="16" fill="#c8102e"/><rect y="6.5" width="24" height="3" fill="#c8102e"/>
   </g></svg>`;
+const FLAG_GL = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Galego">
+  <rect width="24" height="16" rx="2.5" fill="#fff"/><path d="M-2,17 26,-1" stroke="#58a9df" stroke-width="4"/></svg>`;
+const FLAG_PT = `<span class="flag-pair"><svg viewBox="0 0 24 16" width="16" height="15" aria-label="Português">
+  <rect width="10" height="16" rx="2.5" fill="#006600"/><rect x="10" width="14" height="16" fill="#f00"/><circle cx="10" cy="8" r="3.2" fill="#ffcc00"/><circle cx="10" cy="8" r="2.1" fill="#fff"/></svg>
+  <svg viewBox="0 0 24 16" width="16" height="15" aria-label="Brasileiro">
+  <rect width="24" height="16" rx="2.5" fill="#009b3a"/><path d="M12,2 22,8 12,14 2,8 Z" fill="#ffdf00"/><circle cx="12" cy="8" r="3.4" fill="#002776"/></svg></span>`;
+const FLAG_IT = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Italiano">
+  <rect width="8" height="16" rx="2.5" fill="#009246"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce2b37"/></svg>`;
+const FLAG_FR = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Français">
+  <rect width="8" height="16" rx="2.5" fill="#0055a4"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ef4135"/></svg>`;
+const FLAG_DE = `<svg viewBox="0 0 24 16" width="22" height="15" aria-label="Deutsch">
+  <rect width="24" height="5.33" rx="2.5" fill="#000"/><rect y="5.33" width="24" height="5.33" fill="#dd0000"/><rect y="10.66" width="24" height="5.34" fill="#ffce00"/></svg>`;
+const FLAGS = { es: FLAG_ES, en: FLAG_EN, gl: FLAG_GL, pt: FLAG_PT, it: FLAG_IT, fr: FLAG_FR, de: FLAG_DE };
 
 /* Contenido de ayuda por idioma (HTML). */
 const HELP_HTML = {
@@ -337,6 +1564,219 @@ const HELP_HTML = {
     </ol>`,
 };
 
+Object.assign(HELP_HTML, {
+    gl: `
+    <p class="help-lead">Tonex Loader é unha utilidade independente para cargar presets <b>.txp</b> nun
+    <b>IK Multimedia TONEX One</b> ou <b>TONEX Pedal</b> por USB, sen abrir o editor oficial TONEX.</p>
+    <div class="help-warn">⚠️ <b>Non substitúe o TONEX Editor.</b> Non crea, edita, captura nin adestra
+    modelos de amplificador, e non xestiona a biblioteca na nube. O seu único traballo é <b>pasar ao pedal
+    calquera ficheiro .txp</b> que xa teñas.</div>
+
+    <div class="help-section">✅ Que SI podes facer</div>
+    <ul class="help-list">
+      <li><b>Ler</b> os slots do TONEX One ou TONEX Pedal en directo (nome, carácter, amp, cab e efectos).</li>
+      <li><b>Subir</b> calquera <b>.txp</b> a calquera slot: arrastrándoo á xanela, con <b>Abrir .txp</b>,
+      ou con clic dereito nun slot → <i>Subir aquí</i>. Se soltas varios, cargaranse en slots consecutivos.</li>
+      <li><b>Asignar</b> un slot ao footswitch <b>A</b>, <b>B</b> ou <b>Stomp</b> (clic dereito → <i>Cargar</i>,
+      ou arrastrando unha fila sobre unha tarxeta).</li>
+      <li>Ver en <b>tempo real</b> que preset está activo ao pisar o footswitch.</li>
+      <li><b>Cambiar a cor do LED</b> dun slot (clic no punto de cor, só no TONEX One).</li>
+      <li><b>Backup e Restore completos</b>: <b>Backup</b> exporta TODOS os slots a un único <b>.zip</b>
+      (un <b>.txp</b> por slot + asignacións A/B/Stomp e cores de LED). <b>Restaurar</b> volve cargar ese .zip no pedal.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup e Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: preme <b>💾 Backup</b> e escolle onde gardar o <b>.zip</b>. Inclúe un <b>.txp</b>
+      fiel de cada slot e un <code>manifest.json</code> co modelo, asignacións A/B/Stomp e cores.</li>
+      <li><b>Restaurar</b>: preme <b>♻ Restaurar</b>, escolle un <b>.zip</b> feito con esta app e confirma.
+      <b>Sobrescribe</b> o contido do pedal co backup; esta acción non se pode desfacer.</li>
+      <li>Serve para <b>migrar a outro pedal</b>, <b>recuperar</b> tras un reset ou <b>clonar</b> unha configuración.</li>
+    </ul>
+
+    <div class="help-section">🚫 Que NON podes facer</div>
+    <ul class="help-list">
+      <li>Non é un editor: aquí non se axustan ganancia/EQ/efectos. Iso faise en TONEX ou na orixe do .txp.</li>
+      <li>Non crea nin captura modelos de amplificador novos.</li>
+      <li><b>Pecha o software oficial TONEX antes de usar esta app</b>: só un programa pode usar o porto USB á vez.</li>
+    </ul>
+
+    <div class="help-section">▶️ Como subir un preset</div>
+    <ol class="help-list">
+      <li>Conecta o TONEX One ou TONEX Pedal por USB; se fai falta, escolle o porto COM de arriba.</li>
+      <li>Arrastra un <b>.txp</b> á xanela, ou preme <b>Abrir .txp</b>, e escolle o slot de destino.</li>
+      <li>Agarda o OK. Para escoitalo, carga ese slot en <b>A/B/Stomp</b> e pisa o footswitch.</li>
+    </ol>`,
+    pt: `
+    <p class="help-lead">Tonex Loader é uma utilidade independente para carregar presets <b>.txp</b> em um
+    <b>IK Multimedia TONEX One</b> ou <b>TONEX Pedal</b> via USB, sem abrir o editor oficial TONEX.</p>
+    <div class="help-warn">⚠️ <b>Não substitui o TONEX Editor.</b> Não cria, edita, captura nem treina
+    modelos de amplificador, e não gerencia a biblioteca na nuvem. Sua única função é <b>enviar para o pedal
+    qualquer arquivo .txp</b> que você já tenha.</div>
+
+    <div class="help-section">✅ O que você PODE fazer</div>
+    <ul class="help-list">
+      <li><b>Ler</b> os slots do TONEX One ou TONEX Pedal ao vivo (nome, caráter, amp, cab e efeitos).</li>
+      <li><b>Enviar</b> qualquer <b>.txp</b> para qualquer slot: arrastando para a janela, usando <b>Abrir .txp</b>,
+      ou clicando com o botão direito em um slot → <i>Enviar aqui</i>. Se soltar vários, eles ocupam slots consecutivos.</li>
+      <li><b>Atribuir</b> um slot ao footswitch <b>A</b>, <b>B</b> ou <b>Stomp</b> (botão direito → <i>Carregar</i>,
+      ou arrastando uma linha para um cartão).</li>
+      <li>Ver em <b>tempo real</b> qual preset está ativo ao pisar no footswitch.</li>
+      <li><b>Alterar a cor do LED</b> de um slot (clique no ponto de cor, somente TONEX One).</li>
+      <li><b>Backup e Restore completos</b>: <b>Backup</b> exporta TODOS os slots para um único <b>.zip</b>
+      (um <b>.txp</b> por slot + atribuições A/B/Stomp e cores de LED). <b>Restaurar</b> carrega esse .zip de volta no pedal.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup e Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: clique em <b>💾 Backup</b> e escolha onde salvar o <b>.zip</b>. Ele contém um <b>.txp</b>
+      fiel de cada slot e um <code>manifest.json</code> com o modelo, as atribuições A/B/Stomp e as cores.</li>
+      <li><b>Restaurar</b>: clique em <b>♻ Restaurar</b>, escolha um <b>.zip</b> feito com este app e confirme.
+      Isso <b>sobrescreve</b> o conteúdo do pedal com o backup; a ação não pode ser desfeita.</li>
+      <li>Útil para <b>migrar para outro pedal</b>, <b>recuperar</b> após um reset ou <b>clonar</b> uma configuração.</li>
+    </ul>
+
+    <div class="help-section">🚫 O que você NÃO PODE fazer</div>
+    <ul class="help-list">
+      <li>Não é um editor: ganho/EQ/efeitos não são ajustados aqui. Faça isso no TONEX ou na origem do .txp.</li>
+      <li>Não cria nem captura novos modelos de amplificador.</li>
+      <li><b>Feche o software oficial TONEX antes de usar este app</b>: apenas um programa pode usar a porta USB por vez.</li>
+    </ul>
+
+    <div class="help-section">▶️ Como enviar um preset</div>
+    <ol class="help-list">
+      <li>Conecte o TONEX One ou TONEX Pedal por USB; se necessário, escolha a porta COM acima.</li>
+      <li>Arraste um <b>.txp</b> para a janela, ou clique em <b>Abrir .txp</b>, e escolha o slot de destino.</li>
+      <li>Aguarde o OK. Para ouvir, carregue esse slot em <b>A/B/Stomp</b> e pise no footswitch.</li>
+    </ol>`,
+    it: `
+    <p class="help-lead">Tonex Loader è un’utilità indipendente per caricare preset <b>.txp</b> su un
+    <b>IK Multimedia TONEX One</b> o <b>TONEX Pedal</b> via USB, senza aprire l’editor ufficiale TONEX.</p>
+    <div class="help-warn">⚠️ <b>Non sostituisce TONEX Editor.</b> Non crea, modifica, cattura o addestra
+    modelli di amplificatore e non gestisce la libreria cloud. Il suo unico compito è <b>inviare al pedale
+    qualsiasi file .txp</b> che possiedi già.</div>
+
+    <div class="help-section">✅ Cosa PUOI fare</div>
+    <ul class="help-list">
+      <li><b>Leggere</b> gli slot del TONEX One o TONEX Pedal in tempo reale (nome, carattere, amp, cab, effetti).</li>
+      <li><b>Caricare</b> qualsiasi <b>.txp</b> in qualsiasi slot: trascinandolo nella finestra, usando <b>Apri .txp</b>,
+      oppure con clic destro su uno slot → <i>Carica qui</i>. Se ne rilasci diversi, vengono caricati in slot consecutivi.</li>
+      <li><b>Assegnare</b> uno slot al footswitch <b>A</b>, <b>B</b> o <b>Stomp</b> (clic destro → <i>Carica</i>,
+      oppure trascinando una riga su una scheda).</li>
+      <li>Vedere in <b>tempo reale</b> quale preset è attivo quando premi il footswitch.</li>
+      <li><b>Cambiare il colore del LED</b> di uno slot (clic sul punto colorato, solo TONEX One).</li>
+      <li><b>Backup e Restore completi</b>: <b>Backup</b> esporta TUTTI gli slot in un unico <b>.zip</b>
+      (un <b>.txp</b> per slot + assegnazioni A/B/Stomp e colori LED). <b>Ripristina</b> ricarica quel .zip sul pedale.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup e Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: premi <b>💾 Backup</b> e scegli dove salvare il <b>.zip</b>. Contiene un <b>.txp</b>
+      fedele di ogni slot e un <code>manifest.json</code> con modello, assegnazioni A/B/Stomp e colori.</li>
+      <li><b>Ripristina</b>: premi <b>♻ Ripristina</b>, scegli un <b>.zip</b> creato con questa app e conferma.
+      <b>Sovrascrive</b> il contenuto del pedale con il backup; l’azione non può essere annullata.</li>
+      <li>Serve per <b>migrare su un altro pedale</b>, <b>recuperare</b> dopo un reset o <b>clonare</b> una configurazione.</li>
+    </ul>
+
+    <div class="help-section">🚫 Cosa NON PUOI fare</div>
+    <ul class="help-list">
+      <li>Non è un editor: gain/EQ/effetti non si regolano qui. Fallo in TONEX o nella sorgente del .txp.</li>
+      <li>Non crea né cattura nuovi modelli di amplificatore.</li>
+      <li><b>Chiudi il software ufficiale TONEX prima di usare questa app</b>: solo un programma può usare la porta USB alla volta.</li>
+    </ul>
+
+    <div class="help-section">▶️ Come caricare un preset</div>
+    <ol class="help-list">
+      <li>Collega il TONEX One o TONEX Pedal via USB; se necessario, scegli la porta COM in alto.</li>
+      <li>Trascina un <b>.txp</b> nella finestra, oppure premi <b>Apri .txp</b>, e scegli lo slot di destinazione.</li>
+      <li>Attendi l’OK. Per ascoltarlo, carica quello slot in <b>A/B/Stomp</b> e premi il footswitch.</li>
+    </ol>`,
+    fr: `
+    <p class="help-lead">Tonex Loader est un utilitaire indépendant permettant de charger des presets <b>.txp</b> dans un
+    <b>IK Multimedia TONEX One</b> ou <b>TONEX Pedal</b> par USB, sans ouvrir l’éditeur officiel TONEX.</p>
+    <div class="help-warn">⚠️ <b>Il ne remplace pas TONEX Editor.</b> Il ne crée, ne modifie, ne capture et
+    n’entraîne aucun modèle d’ampli, et ne gère pas la bibliothèque cloud. Son seul rôle est <b>d’envoyer à la pédale
+    n’importe quel fichier .txp</b> que vous possédez déjà.</div>
+
+    <div class="help-section">✅ Ce que vous POUVEZ faire</div>
+    <ul class="help-list">
+      <li><b>Lire</b> les slots du TONEX One ou TONEX Pedal en direct (nom, caractère, amp, cab, effets).</li>
+      <li><b>Charger</b> n’importe quel <b>.txp</b> dans n’importe quel slot : en le déposant dans la fenêtre, avec
+      <b>Ouvrir .txp</b>, ou par clic droit sur un slot → <i>Charger ici</i>. Plusieurs fichiers se placent dans des slots consécutifs.</li>
+      <li><b>Assigner</b> un slot au footswitch <b>A</b>, <b>B</b> ou <b>Stomp</b> (clic droit → <i>Charger</i>,
+      ou en faisant glisser une ligne sur une carte).</li>
+      <li>Voir en <b>temps réel</b> quel preset est actif lorsque vous appuyez sur le footswitch.</li>
+      <li><b>Changer la couleur de LED</b> d’un slot (clic sur le point de couleur, TONEX One seulement).</li>
+      <li><b>Backup et Restore complets</b> : <b>Sauvegarde</b> exporte TOUS les slots dans un seul <b>.zip</b>
+      (un <b>.txp</b> par slot + assignations A/B/Stomp et couleurs LED). <b>Restaurer</b> recharge ce .zip dans la pédale.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup et Restore</div>
+    <ul class="help-list">
+      <li><b>Sauvegarde</b> : cliquez sur <b>💾 Sauvegarde</b> et choisissez où enregistrer le <b>.zip</b>. Il contient
+      un <b>.txp</b> fidèle de chaque slot et un <code>manifest.json</code> avec le modèle, les assignations et les couleurs.</li>
+      <li><b>Restaurer</b> : cliquez sur <b>♻ Restaurer</b>, choisissez un <b>.zip</b> créé avec cette app et confirmez.
+      Cela <b>écrase</b> le contenu de la pédale avec la sauvegarde ; cette action est irréversible.</li>
+      <li>Utile pour <b>migrer vers une autre pédale</b>, <b>récupérer</b> après une réinitialisation ou <b>cloner</b> une configuration.</li>
+    </ul>
+
+    <div class="help-section">🚫 Ce que vous NE POUVEZ PAS faire</div>
+    <ul class="help-list">
+      <li>Ce n’est pas un éditeur : gain/EQ/effets ne se règlent pas ici. Faites-le dans TONEX ou à la source du .txp.</li>
+      <li>Il ne crée ni ne capture de nouveaux modèles d’ampli.</li>
+      <li><b>Fermez le logiciel officiel TONEX avant d’utiliser cette app</b> : un seul programme peut utiliser le port USB à la fois.</li>
+    </ul>
+
+    <div class="help-section">▶️ Comment charger un preset</div>
+    <ol class="help-list">
+      <li>Connectez le TONEX One ou TONEX Pedal par USB ; si nécessaire, choisissez le port COM en haut.</li>
+      <li>Déposez un <b>.txp</b> dans la fenêtre, ou cliquez sur <b>Ouvrir .txp</b>, puis choisissez le slot de destination.</li>
+      <li>Attendez le OK. Pour l’écouter, chargez ce slot dans <b>A/B/Stomp</b> et appuyez sur le footswitch.</li>
+    </ol>`,
+    de: `
+    <p class="help-lead">Tonex Loader ist ein unabhängiges Werkzeug, um <b>.txp</b>-Presets per USB auf ein
+    <b>IK Multimedia TONEX One</b> oder <b>TONEX Pedal</b> zu laden, ohne den offiziellen TONEX Editor zu öffnen.</p>
+    <div class="help-warn">⚠️ <b>Es ersetzt den TONEX Editor nicht.</b> Es erstellt, bearbeitet, erfasst und
+    trainiert keine Amp-Modelle und verwaltet keine Cloud-Bibliothek. Seine einzige Aufgabe ist es, <b>beliebige
+    .txp-Dateien</b>, die du bereits hast, auf das Pedal zu übertragen.</div>
+
+    <div class="help-section">✅ Was du tun KANNST</div>
+    <ul class="help-list">
+      <li><b>Slots lesen</b> vom TONEX One oder TONEX Pedal in Echtzeit (Name, Charakter, Amp, Cab, Effekte).</li>
+      <li><b>Jede .txp laden</b> in jeden Slot: per Drag & Drop ins Fenster, mit <b>.txp öffnen</b>,
+      oder per Rechtsklick auf einen Slot → <i>Hier laden</i>. Mehrere Dateien werden in aufeinanderfolgende Slots geladen.</li>
+      <li><b>Einen Slot zuweisen</b> zu Footswitch <b>A</b>, <b>B</b> oder <b>Stomp</b> (Rechtsklick → <i>Laden</i>,
+      oder eine Zeile auf eine Karte ziehen).</li>
+      <li>In <b>Echtzeit</b> sehen, welches Preset aktiv ist, wenn du den Footswitch drückst.</li>
+      <li><b>Die LED-Farbe</b> eines Slots ändern (Klick auf den Farbpunkt, nur TONEX One).</li>
+      <li><b>Vollständiges Backup und Restore</b>: <b>Backup</b> exportiert ALLE Slots in eine einzige <b>.zip</b>
+      (eine <b>.txp</b> pro Slot + A/B/Stomp-Zuweisungen und LED-Farben). <b>Wiederherstellen</b> lädt diese .zip zurück auf das Pedal.</li>
+    </ul>
+
+    <div class="help-section">💾 Backup und Restore</div>
+    <ul class="help-list">
+      <li><b>Backup</b>: Klicke auf <b>💾 Backup</b> und wähle, wo die <b>.zip</b> gespeichert werden soll. Sie enthält
+      eine originalgetreue <b>.txp</b> jedes Slots und eine <code>manifest.json</code> mit Modell, Zuweisungen und Farben.</li>
+      <li><b>Wiederherstellen</b>: Klicke auf <b>♻ Wiederherstellen</b>, wähle eine mit dieser App erstellte <b>.zip</b> und bestätige.
+      Dadurch wird der Inhalt des Pedals mit dem Backup <b>überschrieben</b>; diese Aktion kann nicht rückgängig gemacht werden.</li>
+      <li>Nützlich zum <b>Umziehen auf ein anderes Pedal</b>, <b>Wiederherstellen</b> nach einem Reset oder <b>Klonen</b> einer Konfiguration.</li>
+    </ul>
+
+    <div class="help-section">🚫 Was du NICHT tun KANNST</div>
+    <ul class="help-list">
+      <li>Es ist kein Editor: Gain/EQ/Effekte werden hier nicht eingestellt. Das machst du in TONEX oder an der Quelle der .txp.</li>
+      <li>Es erstellt oder erfasst keine neuen Amp-Modelle.</li>
+      <li><b>Schließe die offizielle TONEX-Software, bevor du diese App verwendest</b>: Nur ein Programm kann den USB-Port gleichzeitig nutzen.</li>
+    </ul>
+
+    <div class="help-section">▶️ So lädst du ein Preset</div>
+    <ol class="help-list">
+      <li>Schließe TONEX One oder TONEX Pedal per USB an; wähle oben den COM-Port, falls nötig.</li>
+      <li>Ziehe eine <b>.txp</b> ins Fenster, oder klicke auf <b>.txp öffnen</b>, und wähle den Ziel-Slot.</li>
+      <li>Warte auf OK. Zum Anhören lade diesen Slot in <b>A/B/Stomp</b> und drücke den Footswitch.</li>
+    </ol>`,
+});
+
 const POSITIONS = [
     { label: 'A', proto: 'A', color: 'var(--pos-a)' },
     { label: 'B', proto: 'B', color: 'var(--pos-b)' },
@@ -381,6 +1821,29 @@ const LED_PALETTE = [
     // Fila 5 — apagado
     { rgb: [0, 0, 0], hex: OFF_HEX, name: { es: 'Apagado', en: 'Off' } },
 ];
+[
+    { gl: 'Vermello', pt: 'Vermelho', it: 'Rosso', fr: 'Rouge', de: 'Rot' },
+    { gl: 'Laranxa', pt: 'Laranja', it: 'Arancione', fr: 'Orange', de: 'Orange' },
+    { gl: 'Amarelo', pt: 'Amarelo', it: 'Giallo', fr: 'Jaune', de: 'Gelb' },
+    { gl: 'Verde', pt: 'Verde', it: 'Verde', fr: 'Vert', de: 'Grün' },
+    { gl: 'Cian', pt: 'Ciano', it: 'Ciano', fr: 'Cyan', de: 'Cyan' },
+    { gl: 'Celeste', pt: 'Azul claro', it: 'Azzurro', fr: 'Bleu ciel', de: 'Himmelblau' },
+    { gl: 'Azul', pt: 'Azul', it: 'Blu', fr: 'Bleu', de: 'Blau' },
+    { gl: 'Violeta', pt: 'Violeta', it: 'Viola', fr: 'Violet', de: 'Violett' },
+    { gl: 'Maxenta', pt: 'Magenta', it: 'Magenta', fr: 'Magenta', de: 'Magenta' },
+    { gl: 'Rosa', pt: 'Rosa', it: 'Rosa', fr: 'Rose', de: 'Rosa' },
+    { gl: 'Granate', pt: 'Vinho', it: 'Bordeaux', fr: 'Bordeaux', de: 'Dunkelrot' },
+    { gl: 'Marrón', pt: 'Marrom', it: 'Marrone', fr: 'Marron', de: 'Braun' },
+    { gl: 'Oliva', pt: 'Oliva', it: 'Oliva', fr: 'Olive', de: 'Oliv' },
+    { gl: 'Verde escuro', pt: 'Verde escuro', it: 'Verde scuro', fr: 'Vert foncé', de: 'Dunkelgrün' },
+    { gl: 'Verde azulado', pt: 'Verde azulado', it: 'Verde petrolio', fr: 'Sarcelle', de: 'Blaugrün' },
+    { gl: 'Azul aceiro', pt: 'Azul aço', it: 'Blu acciaio', fr: 'Bleu acier', de: 'Stahlblau' },
+    { gl: 'Azul mariño', pt: 'Azul marinho', it: 'Blu navy', fr: 'Bleu marine', de: 'Marineblau' },
+    { gl: 'Morado', pt: 'Índigo', it: 'Indaco', fr: 'Indigo', de: 'Indigo' },
+    { gl: 'Púrpura', pt: 'Púrpura', it: 'Porpora', fr: 'Pourpre', de: 'Purpur' },
+    { gl: 'Malva', pt: 'Malva', it: 'Malva', fr: 'Mauve', de: 'Malve' },
+    { gl: 'Apagado', pt: 'Desligado', it: 'Spento', fr: 'Éteint', de: 'Aus' },
+].forEach((names, i) => Object.assign(LED_PALETTE[i].name, names));
 const LED_MAP = Object.fromEntries(LED_PALETTE.map((e) => [e.rgb.join(','), e.hex]));
 // Devuelve el hex de visualización de un RGB leído del pedal. Coincidencia exacta
 // si está en la tabla; si no, el color más cercano de la tabla (los valores
@@ -542,8 +2005,41 @@ function hideReminder() {
 
 function applyMonetizationUI() {
     const donate = $('btnDonate');
-    if (donate) donate.style.display = monetizationPartEnabled('donateButton') ? '' : 'none';
+    if (donate) {
+        donate.style.display = monetizationPartEnabled('donateButton') ? '' : 'none';
+        const isFull = !restrictionsActive();
+        if (isFull) {
+            donate.textContent = t('supportProject');
+            donate.title = t('supportProjectTitle');
+        } else {
+            donate.textContent = t('donateAndActivate');
+            donate.title = t('donateAndActivateTitle');
+        }
+    }
+    applyDonationLanguage();
     showOfflineWarning(!!monetizationConfig.offlineMode);
+}
+
+function applyDonationLanguage() {
+    const title = $('donationTitle');
+    const text = document.querySelector('#donationOverlay .donation-text');
+    const important = document.querySelector('#donationOverlay .donation-token-label-important');
+    const supportLabel = document.querySelector('#donationManual > .donation-token-label');
+    if (title) title.textContent = t('donationTitleText');
+    if (text) text.innerHTML = t('donationBody');
+    if (important) important.textContent = t('donationImportant');
+    if ($('donationClose')) $('donationClose').title = t('donationCloseTitle');
+    if ($('btnCopyToken')) $('btnCopyToken').title = t('donationCopyTitle');
+    if ($('btnCopyHwid')) $('btnCopyHwid').title = t('donationCopyTitle');
+    if ($('donationDonate')) $('donationDonate').textContent = t('donationDonateButton');
+    if ($('donationCheck')) $('donationCheck').textContent = t('donationCheckButton');
+    if ($('donationManualToggle')) $('donationManualToggle').textContent = t('donationManualToggle');
+    if (supportLabel) supportLabel.textContent = t('donationSupportId');
+    if ($('donationCodeInput')) $('donationCodeInput').placeholder = t('donationCodePlaceholder');
+    if ($('donationApply')) $('donationApply').textContent = t('donationApplyButton');
+    if ($('donationNotFoundHint') && $('donationNotFoundHint').style.display !== 'none') {
+        $('donationNotFoundHint').textContent = t('donationNotFoundHint');
+    }
 }
 
 async function loadMonetizationConfig() {
@@ -593,14 +2089,23 @@ function showDonationOverlay(mode) {
     $('donationToken').textContent = licenseInfo.token || '—';
     $('donationHwid').textContent = licenseInfo.hwid || '—';
     $('donationStatus').textContent = '';
+    const hint = $('donationNotFoundHint');
+    if (hint) hint.style.display = 'none';
+    $('donationManualToggle').classList.remove('blink-highlight');
+    applyDonationLanguage();
 
-    ov.classList.remove('closable');
     ov.classList.add('active');
 
-    $('donationCountdown').textContent = '';
-    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-
-    startDonationCountdown(COUNTDOWN_SECONDS);
+    if (mode === 'limit' || mode === 'manual') {
+        ov.classList.add('closable');
+        $('donationCountdown').textContent = '';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    } else {
+        ov.classList.remove('closable');
+        $('donationCountdown').textContent = '';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        startDonationCountdown(COUNTDOWN_SECONDS);
+    }
 }
 
 function hideDonationOverlay() {
@@ -612,9 +2117,7 @@ function hideDonationOverlay() {
 function startDonationCountdown(sec) {
     let s = sec;
     const updateLabel = () => {
-        $('donationCountdown').innerHTML = state.lang === 'es'
-            ? `Podrás usar la app en <span class="countdown-num">${s}</span> s  ·  You can use the app in <span class="countdown-num">${s}</span> s`
-            : `You can use the app in <span class="countdown-num">${s}</span> s  ·  Podrás usar la app en <span class="countdown-num">${s}</span> s`;
+        $('donationCountdown').innerHTML = t('donationCountdown', { s });
     };
     updateLabel();
     if (countdownTimer) clearInterval(countdownTimer);
@@ -640,8 +2143,11 @@ function donationUnlockSuccess() {
         const st = $('donationStatus');
         if (st) {
             st.style.color = 'var(--pos-b)';
-            st.textContent = '¡Donación verificada! Gracias 💚 · Donation verified! Thanks 💚';
+            st.textContent = t('donationVerified');
         }
+        const hint = $('donationNotFoundHint');
+        if (hint) hint.style.display = 'none';
+        $('donationManualToggle').classList.remove('blink-highlight');
         setTimeout(hideDonationOverlay, 1800);
     }
     loadMonetizationConfig();
@@ -653,21 +2159,27 @@ async function donationCheck() {
     const st = $('donationStatus');
     if (st) {
         st.style.color = '';
-        st.textContent = state.lang === 'es' ? 'Verificando...' : 'Checking...';
+        st.textContent = t('donationChecking');
     }
+    const hint = $('donationNotFoundHint');
+    if (hint) hint.style.display = 'none';
     try {
         const ok = await b.CheckDonation();
         if (ok) {
             donationUnlockSuccess();
         } else {
             if (st) {
-                st.textContent = state.lang === 'es'
-                    ? 'Aún no consta tu donación. Espera unos segundos tras donar y reinténtalo. · Donation not found yet. Wait a few seconds after donating and retry.'
-                    : 'Donation not found yet. Wait a few seconds after donating and retry. · Aún no consta tu donación. Espera unos segundos tras donar y reinténtalo.';
+                st.style.color = '#ff9a3d';
+                st.textContent = t('donationNotFound');
             }
+            if (hint) {
+                hint.textContent = t('donationNotFoundHint');
+                hint.style.display = 'block';
+            }
+            $('donationManualToggle').classList.add('blink-highlight');
         }
     } catch (e) {
-        if (st) st.textContent = String(e.message || e);
+        if (st) st.textContent = translateBackendText(e);
     }
 }
 
@@ -678,7 +2190,7 @@ async function donationApplyManual() {
     const st = $('donationStatus');
     if (st) {
         st.style.color = '';
-        st.textContent = '';
+        st.textContent = t('donationApplyingCode');
     }
     try {
         const ok = await b.ApplyCode(code);
@@ -687,13 +2199,13 @@ async function donationApplyManual() {
         } else {
             if (st) {
                 st.style.color = 'var(--pos-c)';
-                st.textContent = state.lang === 'es' ? 'Código incorrecto · Invalid code' : 'Invalid code · Código incorrecto';
+                st.textContent = t('donationInvalidCode');
             }
         }
     } catch (e) {
         if (st) {
             st.style.color = 'var(--pos-c)';
-            st.textContent = String(e.message || e);
+            st.textContent = translateBackendText(e);
         }
     }
 }
@@ -825,9 +2337,14 @@ function applyLang() {
         el.title = t(el.dataset.i18nTitle);
     });
     // banderas + estado activo
-    $('langSwitch').querySelectorAll('.lang-btn').forEach((b) => {
-        b.innerHTML = b.dataset.lang === 'es' ? FLAG_ES : FLAG_EN;
+    document.querySelectorAll('.lang-btn[data-lang]').forEach((b) => {
+        b.innerHTML = FLAGS[b.dataset.lang] || FLAGS.es;
         b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    const langSwitch = $('langSwitch');
+    if (langSwitch) langSwitch.setAttribute('aria-label', t('languageSelectorLabel'));
+    document.querySelectorAll('.donation-lang-switch').forEach((el) => {
+        el.setAttribute('aria-label', t('languageSelectorLabel'));
     });
     $('dropHint').querySelector('.drop-inner').innerHTML = t('dropHint');
     // Si el recordatorio está abierto, refrescar su texto (y el botón si ya es cerrable).
@@ -843,6 +2360,7 @@ function applyLang() {
         }
     }
     applyMonetizationUI();
+    setBackendLanguage(lang);
     // re-render dinámico
     renderCards();
     renderTable();
@@ -853,10 +2371,18 @@ function applyLang() {
 }
 
 function setLang(l) {
-    if (l === lang) return;
-    lang = l;
-    localStorage.setItem('tonexLang', l);
+    const next = normalizeLang(l);
+    if (next === lang) return;
+    lang = next;
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
     applyLang();
+}
+
+function setBackendLanguage(nextLang) {
+    try {
+        const b = backend();
+        if (b && typeof b.SetLanguage === 'function') b.SetLanguage(nextLang);
+    } catch (_) {}
 }
 
 /* ---- UI según modelo ---- */
@@ -1320,10 +2846,19 @@ function openDonate() {
 }
 
 /* ---- ayuda ---- */
+function versionStatusHtml() {
+    const isFull = !restrictionsActive();
+    const text = isFull ? t('fullVersion') : t('restrictedVersion');
+    const color = isFull ? '#39ff14' : '#ff4d6a';
+    const shadow = isFull ? 'rgba(57,255,20,0.4)' : 'rgba(255,77,106,0.4)';
+    return `<div class="version-status" style="color:${color};text-shadow:0 0 10px ${shadow};">[ ${text} ]</div>`;
+}
+
 function showHelp() {
+    const helpBody = HELP_HTML[lang] || HELP_HTML.es;
     openModal(`
     <h2>${t('helpTitle')}</h2>
-    <div class="help-body">${HELP_HTML[lang]}</div>
+    <div class="help-body">${versionStatusHtml()}${helpBody}</div>
     <div class="modal-actions"><button class="btn primary" data-close>${t('close')}</button></div>`);
 }
 
@@ -1740,17 +3275,26 @@ function wireEvents() {
     $('btnRestore').onclick = restore;
     $('btnPoll').onclick = () => togglePolling();
     $('btnHelp').onclick = showHelp;
-    $('btnDonate').onclick = openDonate;
+    $('btnDonate').onclick = () => {
+        if (!restrictionsActive()) {
+            openDonate();
+        } else {
+            showDonationOverlay('manual');
+        }
+    };
     $('donationDonate').onclick = openDonate;
     $('donationCheck').onclick = donationCheck;
     $('donationClose').onclick = hideDonationOverlay;
-    $('donationManualToggle').onclick = () => $('donationManual').classList.toggle('open');
+    $('donationManualToggle').onclick = () => {
+        $('donationManual').classList.toggle('open');
+        $('donationManualToggle').classList.remove('blink-highlight');
+    };
     $('donationApply').onclick = donationApplyManual;
     $('reminderClose').onclick = () => { if (!$('reminderClose').disabled) hideReminder(); };
     setupCopyButton('btnCopyToken', 'donationToken');
     setupCopyButton('btnCopyHwid', 'donationHwid');
     $('portSelect').onchange = (e) => { state.port = e.target.value; };
-    $('langSwitch').querySelectorAll('.lang-btn').forEach((b) => {
+    document.querySelectorAll('.lang-btn[data-lang]').forEach((b) => {
         b.onclick = () => setLang(b.dataset.lang);
     });
 

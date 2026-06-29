@@ -96,8 +96,9 @@ jobs:
         run: |
           tag="${GITHUB_REF_NAME}"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file .github/RELEASE_BODY.md
             gh release upload "$tag" artifacts/* --repo "$GITHUB_REPOSITORY" --clobber
           else
             gh release create "$tag" artifacts/* --repo "$GITHUB_REPOSITORY" \
-              --title "$tag" --generate-notes
+              --title "$tag" --notes-file .github/RELEASE_BODY.md
           fi

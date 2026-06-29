@@ -47,6 +47,7 @@ type App struct {
 	monetizationConfig MonetizationConfig
 	importsDone        int
 	exportsDone        int
+	uiLang             string
 }
 
 // NewApp crea la estructura de la app.
@@ -54,9 +55,71 @@ func NewApp() *App {
 	a := &App{
 		uploadMeta:        make(map[int]*upload.Metadata),
 		hideBChoOnDisplay: make(map[int]bool),
+		uiLang:            "es",
 	}
 	a.loadDisplayPolicy()
 	return a
+}
+
+// SetLanguage keeps backend-owned dialogs aligned with the frontend language.
+func (a *App) SetLanguage(lang string) {
+	a.licMu.Lock()
+	defer a.licMu.Unlock()
+	switch strings.ToLower(lang) {
+	case "es", "en", "gl", "pt", "it", "fr", "de":
+		a.uiLang = strings.ToLower(lang)
+	default:
+		a.uiLang = "es"
+	}
+}
+
+func (a *App) uiText(es, en string, rest ...string) string {
+	a.licMu.Lock()
+	lang := a.uiLang
+	a.licMu.Unlock()
+	switch lang {
+	case "en":
+		return en
+	case "gl":
+		if len(rest) > 0 {
+			return rest[0]
+		}
+	case "pt":
+		if len(rest) > 1 {
+			return rest[1]
+		}
+	case "it":
+		if len(rest) > 2 {
+			return rest[2]
+		}
+	case "fr":
+		if len(rest) > 3 {
+			return rest[3]
+		}
+	case "de":
+		if len(rest) > 4 {
+			return rest[4]
+		}
+	}
+	return es
+}
+
+func (a *App) restoreConfirmMessage(count int, modelName string) string {
+	switch a.uiText("es", "en", "gl", "pt", "it", "fr", "de") {
+	case "en":
+		return fmt.Sprintf("%d pedal presets will be overwritten with the backup (%s).\n\nThis cannot be undone. Continue?", count, modelName)
+	case "gl":
+		return fmt.Sprintf("Sobrescribiranse %d presets do pedal co backup (%s).\n\nEsta accion non se pode desfacer. Continuar?", count, modelName)
+	case "pt":
+		return fmt.Sprintf("%d presets do pedal serao substituidos pelo backup (%s).\n\nEsta acao nao pode ser desfeita. Continuar?", count, modelName)
+	case "it":
+		return fmt.Sprintf("%d preset del pedale saranno sovrascritti con il backup (%s).\n\nQuesta azione non puo essere annullata. Continuare?", count, modelName)
+	case "fr":
+		return fmt.Sprintf("%d presets de la pedale seront remplaces par la sauvegarde (%s).\n\nCette action est irreversible. Continuer ?", count, modelName)
+	case "de":
+		return fmt.Sprintf("%d Pedal-Presets werden mit dem Backup (%s) ueberschrieben.\n\nDiese Aktion kann nicht rueckgaengig gemacht werden. Fortfahren?", count, modelName)
+	}
+	return fmt.Sprintf("Se van a sobrescribir %d presets del pedal con el backup (%s).\n\nEsta accion no se puede deshacer. ¿Continuar?", count, modelName)
 }
 
 // startup guarda el contexto. El drag & drop de ficheros se gestiona en el
@@ -156,7 +219,7 @@ func (a *App) Snapshot(port string) (*librarian.Snapshot, error) {
 func (a *App) RefreshSlot(slot int, port string) (*preset.Summary, error) {
 	max := slotCountFor(port)
 	if slot < 0 || slot >= max {
-		return nil, fmt.Errorf("slot fuera de rango (0-%d)", max-1)
+		return nil, fmt.Errorf("%s (0-%d)", a.uiText("slot fuera de rango", "slot out of range", "slot fóra de rango", "slot fora do intervalo", "slot fuori intervallo", "slot hors limites", "Slot ausserhalb des Bereichs"), max-1)
 	}
 	var out *preset.Summary
 	err := a.withPedal(func() error {
@@ -201,7 +264,7 @@ func (a *App) UploadAndAssign(txpPath string, slot int, assignTo, port string) (
 	}
 	max := slotCountFor(port)
 	if slot < 0 || slot >= max {
-		return nil, fmt.Errorf("slot fuera de rango (0-%d)", max-1)
+		return nil, fmt.Errorf("%s (0-%d)", a.uiText("slot fuera de rango", "slot out of range", "slot fóra de rango", "slot fora do intervalo", "slot fuori intervallo", "slot hors limites", "Slot ausserhalb des Bereichs"), max-1)
 	}
 	var res *librarian.UploadResult
 	meta, _ := upload.MetadataFromTXPFile(txpPath)
@@ -326,7 +389,7 @@ func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) 
 	}
 	max := slotCountFor(port)
 	if slot < 0 || slot >= max {
-		return "", fmt.Errorf("slot fuera de rango (0-%d)", max-1)
+		return "", fmt.Errorf("%s (0-%d)", a.uiText("slot fuera de rango", "slot out of range", "slot fóra de rango", "slot fora do intervalo", "slot fuori intervallo", "slot hors limites", "Slot ausserhalb des Bereichs"), max-1)
 	}
 	var data []byte
 	name := fmt.Sprintf("slot-%02d", slot+1)
@@ -346,11 +409,11 @@ func (a *App) exportTXP(slot int, port, modelNameSuffix string) (string, error) 
 	}
 
 	path, err := wruntime.SaveFileDialog(a.ctx, wruntime.SaveDialogOptions{
-		Title:           "Exportar preset .txp",
+		Title:           a.uiText("Exportar preset .txp", "Export .txp preset", "Exportar preset .txp", "Exportar preset .txp", "Esporta preset .txp", "Exporter le preset .txp", ".txp-Preset exportieren"),
 		DefaultFilename: safeTXPFilename(name, slot),
 		Filters: []wruntime.FileFilter{
 			{DisplayName: "Tonex preset (*.txp)", Pattern: "*.txp"},
-			{DisplayName: "Todos los ficheros (*.*)", Pattern: "*.*"},
+			{DisplayName: a.uiText("Todos los ficheros (*.*)", "All files (*.*)", "Todos os ficheiros (*.*)", "Todos os arquivos (*.*)", "Tutti i file (*.*)", "Tous les fichiers (*.*)", "Alle Dateien (*.*)"), Pattern: "*.*"},
 		},
 	})
 	if err != nil {
@@ -397,12 +460,12 @@ func (a *App) ExportTXPMulti(slots []int, port string, bcho bool) (*ExportTXPMul
 		clean = append(clean, s)
 	}
 	if len(clean) == 0 {
-		return nil, fmt.Errorf("no hay slots validos seleccionados")
+		return nil, fmt.Errorf("%s", a.uiText("no hay slots validos seleccionados", "no valid slots selected", "non hai slots validos seleccionados", "nenhum slot valido selecionado", "nessuno slot valido selezionato", "aucun slot valide selectionne", "keine gueltigen Slots ausgewaehlt"))
 	}
 	sort.Ints(clean)
 
 	dir, err := wruntime.OpenDirectoryDialog(a.ctx, wruntime.OpenDialogOptions{
-		Title: "Elige la carpeta donde exportar los .txp",
+		Title: a.uiText("Elige la carpeta donde exportar los .txp", "Choose the folder to export the .txp files", "Escolle o cartafol onde exportar os .txp", "Escolha a pasta para exportar os .txp", "Scegli la cartella in cui esportare i .txp", "Choisissez le dossier ou exporter les .txp", "Ordner fuer den Export der .txp-Dateien waehlen"),
 	})
 	if err != nil {
 		return nil, err
@@ -480,10 +543,10 @@ func (a *App) SetColor(presetIndex, r, g, b int, port string) error {
 // OpenTXPDialog abre el selector de ficheros .txp (uno o varios).
 func (a *App) OpenTXPDialog() ([]string, error) {
 	return wruntime.OpenMultipleFilesDialog(a.ctx, wruntime.OpenDialogOptions{
-		Title: "Selecciona uno o varios .txp",
+		Title: a.uiText("Selecciona uno o varios .txp", "Select one or more .txp files", "Selecciona un ou varios .txp", "Selecione um ou varios .txp", "Seleziona uno o piu file .txp", "Selectionnez un ou plusieurs .txp", "Eine oder mehrere .txp-Dateien auswaehlen"),
 		Filters: []wruntime.FileFilter{
 			{DisplayName: "Tonex preset (*.txp)", Pattern: "*.txp"},
-			{DisplayName: "Todos los ficheros (*.*)", Pattern: "*.*"},
+			{DisplayName: a.uiText("Todos los ficheros (*.*)", "All files (*.*)", "Todos os ficheiros (*.*)", "Todos os arquivos (*.*)", "Tutti i file (*.*)", "Tous les fichiers (*.*)", "Alle Dateien (*.*)"), Pattern: "*.*"},
 		},
 	})
 }
@@ -528,7 +591,7 @@ func (a *App) BackupZip(port string) (string, error) {
 		return "", err
 	}
 	if bundle == nil || len(bundle.Slots) == 0 {
-		return "", fmt.Errorf("no se pudo leer ningun slot del pedal")
+		return "", fmt.Errorf("%s", a.uiText("no se pudo leer ningun slot del pedal", "could not read any pedal slot", "non se puido ler ningun slot do pedal", "nao foi possivel ler nenhum slot do pedal", "impossibile leggere alcuno slot del pedale", "impossible de lire un slot de la pedale", "kein Pedal-Slot konnte gelesen werden"))
 	}
 
 	// Construir el ZIP en memoria.
@@ -587,7 +650,7 @@ func (a *App) BackupZip(port string) (string, error) {
 
 	def := fmt.Sprintf("tonex-backup-%s-%s.zip", bundle.Model, time.Now().Format("20060102-150405"))
 	path, err := wruntime.SaveFileDialog(a.ctx, wruntime.SaveDialogOptions{
-		Title:           "Guardar backup del pedal",
+		Title:           a.uiText("Guardar backup del pedal", "Save pedal backup", "Gardar backup do pedal", "Salvar backup do pedal", "Salva backup del pedale", "Enregistrer la sauvegarde de la pedale", "Pedal-Backup speichern"),
 		DefaultFilename: def,
 		Filters: []wruntime.FileFilter{
 			{DisplayName: "Backup ZIP (*.zip)", Pattern: "*.zip"},
@@ -617,7 +680,7 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 		return nil, err
 	}
 	path, err := wruntime.OpenFileDialog(a.ctx, wruntime.OpenDialogOptions{
-		Title: "Selecciona un backup .zip",
+		Title: a.uiText("Selecciona un backup .zip", "Select a .zip backup", "Selecciona un backup .zip", "Selecione um backup .zip", "Seleziona un backup .zip", "Selectionnez une sauvegarde .zip", ".zip-Backup auswaehlen"),
 		Filters: []wruntime.FileFilter{
 			{DisplayName: "Backup ZIP (*.zip)", Pattern: "*.zip"},
 		},
@@ -631,7 +694,7 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 
 	zr, err := zip.OpenReader(path)
 	if err != nil {
-		return nil, fmt.Errorf("no se pudo abrir el zip: %w", err)
+		return nil, fmt.Errorf("%s: %w", a.uiText("no se pudo abrir el zip", "could not open zip", "non se puido abrir o zip", "nao foi possivel abrir o zip", "impossibile aprire lo zip", "impossible d'ouvrir le zip", "Zip konnte nicht geoeffnet werden"), err)
 	}
 	defer zr.Close()
 
@@ -654,11 +717,11 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 		}
 	}
 	if manifestRaw == nil {
-		return nil, fmt.Errorf("el zip no contiene manifest.json (no es un backup valido)")
+		return nil, fmt.Errorf("%s", a.uiText("el zip no contiene manifest.json (no es un backup valido)", "the zip does not contain manifest.json (not a valid backup)", "o zip non conten manifest.json (non e un backup valido)", "o zip nao contem manifest.json (nao e um backup valido)", "lo zip non contiene manifest.json (non e un backup valido)", "le zip ne contient pas manifest.json (sauvegarde non valide)", "die Zip-Datei enthaelt keine manifest.json (kein gueltiges Backup)"))
 	}
 	var manifest backupManifest
 	if err := json.Unmarshal(manifestRaw, &manifest); err != nil {
-		return nil, fmt.Errorf("manifest.json no valido: %w", err)
+		return nil, fmt.Errorf("%s: %w", a.uiText("manifest.json no valido", "invalid manifest.json", "manifest.json non valido", "manifest.json invalido", "manifest.json non valido", "manifest.json non valide", "ungueltige manifest.json"), err)
 	}
 
 	entries := make([]librarian.RestoreEntry, 0, len(manifest.Slots))
@@ -676,19 +739,19 @@ func (a *App) RestoreZip(port string) (*librarian.RestoreReport, error) {
 		}
 	}
 	if len(entries) == 0 {
-		return nil, fmt.Errorf("el backup no contiene presets")
+		return nil, fmt.Errorf("%s", a.uiText("el backup no contiene presets", "the backup does not contain presets", "o backup non conten presets", "o backup nao contem presets", "il backup non contiene preset", "la sauvegarde ne contient pas de presets", "das Backup enthaelt keine Presets"))
 	}
 
 	// Confirmacion: el restore sobrescribe el contenido del pedal.
 	confirm, _ := wruntime.MessageDialog(a.ctx, wruntime.MessageDialogOptions{
 		Type:          wruntime.QuestionDialog,
-		Title:         "Restaurar backup",
-		Message:       fmt.Sprintf("Se van a sobrescribir %d presets del pedal con el backup (%s).\n\nEsta accion no se puede deshacer. ¿Continuar?", len(entries), manifest.ModelName),
-		Buttons:       []string{"Restaurar", "Cancelar"},
-		DefaultButton: "No",
-		CancelButton:  "Cancelar",
+		Title:         a.uiText("Restaurar backup", "Restore backup", "Restaurar backup", "Restaurar backup", "Ripristina backup", "Restaurer la sauvegarde", "Backup wiederherstellen"),
+		Message:       a.restoreConfirmMessage(len(entries), manifest.ModelName),
+		Buttons:       []string{a.uiText("Restaurar", "Restore", "Restaurar", "Restaurar", "Ripristina", "Restaurer", "Wiederherstellen"), a.uiText("Cancelar", "Cancel", "Cancelar", "Cancelar", "Annulla", "Annuler", "Abbrechen")},
+		DefaultButton: a.uiText("Cancelar", "Cancel", "Cancelar", "Cancelar", "Annulla", "Annuler", "Abbrechen"),
+		CancelButton:  a.uiText("Cancelar", "Cancel", "Cancelar", "Cancelar", "Annulla", "Annuler", "Abbrechen"),
 	})
-	if confirm != "Restaurar" && confirm != "Yes" {
+	if confirm != a.uiText("Restaurar", "Restore", "Restaurar", "Restaurar", "Ripristina", "Restaurer", "Wiederherstellen") && confirm != "Yes" {
 		return nil, nil // cancelado por el usuario
 	}
 
